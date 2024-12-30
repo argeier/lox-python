@@ -1,0 +1,68 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C compiler generated files
+*.o
+*.out
+*.exe
+*.obj
+*.so
+*.dll
+*.dylib
+
+# Virtual Environment
+venv/
+ENV/
+env/
+
+# Build directories
+build/
+dist/
+*.egg-info/
+
+# IDE directories and project files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs and debugging files
+*.log
+*.cache
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Python cache files
+*.pyo
+
+# Backup files
+*~
+*.swp
+*.bak
+*.tmp
+*.tmp/
+tmp/
+
+# AST Images
+*.ast/
+
+# Dependency files
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Coverage reports
+.coverage
+*.coverage
+coverage.xml
+htmlcov/
+
+# Testing and profiling
+.pytest_cache/
+.tox/
+nosetests.xml
+.testrepository/
+.cache/
