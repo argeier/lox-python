@@ -1,4 +1,4 @@
-from tmp.expr_pm import Binary, Expr, Grouping, Literal, Unary
+from expr_pm import Binary, Expr, Grouping, Literal, Unary
 
 
 class AstPrinter:

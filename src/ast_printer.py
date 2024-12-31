@@ -1,7 +1,7 @@
 import os
-from typing import List, Optional
+from typing import List, Optional, override
 
-import pygraphviz as pgv
+from pygraphviz import AGraph
 
 from expr import Binary, Expr, Grouping, Literal, Unary, Visitor
 
@@ -18,13 +18,17 @@ class AstPrinter(Visitor[str]):
         """
         self.ast: str = ""
 
-    def create_ast(self, expr: Expr) -> None:
+    def create_ast(self, expr: Expr | None) -> None:
         """
         Generates the string representation of the AST.
 
         Args:
             expr (Expr): The root expression of the AST.
         """
+        if expr is None:
+            self.ast = ""
+            return
+
         self.ast = expr.accept(self)
 
     def _parenthesize(self, name: str, *exprs: Expr) -> str:
@@ -40,7 +44,8 @@ class AstPrinter(Visitor[str]):
         """
         return f"({name} {' '.join(expr.accept(self) for expr in exprs)})"
 
-    def visit_binary_expr(self, expr: Binary) -> str:
+    @override
+    def visit_binary_expr(self, expr: Expr) -> str:
         """
         Visits a binary expression and generates its string representation.
 
@@ -50,9 +55,11 @@ class AstPrinter(Visitor[str]):
         Returns:
             str: The string representation of the binary expression.
         """
+        assert isinstance(expr, Binary)
         return self._parenthesize(expr.operator.lexeme, expr.left, expr.right)
 
-    def visit_unary_expr(self, expr: Unary) -> str:
+    @override
+    def visit_unary_expr(self, expr: Expr) -> str:
         """
         Visits a unary expression and generates its string representation.
 
@@ -62,9 +69,11 @@ class AstPrinter(Visitor[str]):
         Returns:
             str: The string representation of the unary expression.
         """
+        assert isinstance(expr, Unary)
         return self._parenthesize(expr.operator.lexeme, expr.right)
 
-    def visit_literal_expr(self, expr: Literal) -> str:
+    @override
+    def visit_literal_expr(self, expr: Expr) -> str:
         """
         Visits a literal expression and generates its string representation.
 
@@ -74,9 +83,11 @@ class AstPrinter(Visitor[str]):
         Returns:
             str: The string representation of the literal expression.
         """
+        assert isinstance(expr, Literal)
         return "nil" if expr.value is None else str(expr.value)
 
-    def visit_grouping_expr(self, expr: Grouping) -> str:
+    @override
+    def visit_grouping_expr(self, expr: Expr) -> str:
         """
         Visits a grouping expression and generates its string representation.
 
@@ -86,6 +97,7 @@ class AstPrinter(Visitor[str]):
         Returns:
             str: The string representation of the grouping expression.
         """
+        assert isinstance(expr, Grouping)
         return self._parenthesize("group", expr.expression)
 
     def visualize_ast(self) -> None:
@@ -95,7 +107,7 @@ class AstPrinter(Visitor[str]):
 
         def _parse_expression(
             expression: str,
-            graph: pgv.AGraph,
+            graph: AGraph,
             parent: Optional[str] = None,
             counter: List[int] = [0],
         ) -> None:
@@ -104,7 +116,7 @@ class AstPrinter(Visitor[str]):
 
             Args:
                 expression (str): The string representation of the AST.
-                graph (pgv.AGraph): The graph object to populate.
+                graph (AGraph): The graph object to populate.
                 parent (Optional[str]): The parent node ID. Defaults to None.
                 counter (List[int]): A counter to generate unique node IDs. Defaults to [0].
             """
@@ -164,7 +176,7 @@ class AstPrinter(Visitor[str]):
         output_file = os.path.join(ast_dir, "ast_image.png")
 
         # Create and render the graph
-        graph = pgv.AGraph(strict=True, directed=True)
+        graph = AGraph(strict=True, directed=True)
         _parse_expression(self.ast, graph)
         graph.layout(prog="dot")
         graph.draw(output_file)

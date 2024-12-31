@@ -22,10 +22,10 @@ class Parser:
     ):
         self.tokens = tokens
         self.current = 0
-        self.error_handler = error_handler  # TODO: take ErrorHandler from lox.py
+        self.error_handler = error_handler
 
     # Public Interface
-    def parse(self) -> Expr:
+    def parse(self) -> Expr | None:
         try:
             return self.expression()
         except ParseError:
@@ -40,7 +40,7 @@ class Parser:
     def _check(self, type: TokenType) -> bool:
         return False if self._is_at_end() else self._peek().type == type
 
-    def _match(self, *types: Tuple[TokenType]) -> bool:
+    def _match(self, *types: TokenType) -> bool:
         for type in types:
             if self._check(type):
                 self._advance()

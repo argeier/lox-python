@@ -59,6 +59,7 @@ class TokenType(Enum):
     TRUE = "true"
     VAR = "var"
     WHILE = "while"
+    FUNCTION = "function"
 
     # End of file
     EOF = "EOF"
