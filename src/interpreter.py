@@ -1,11 +1,14 @@
-from typing import Any, Optional, cast, override
+from typing import Any, List, cast, override
 
-from expr import Binary, Expr, Grouping, Literal, Unary, Visitor
+from expr import Binary, Expr, ExprVisitor, Grouping, Literal, Unary
+from stmt import Expression, Print, Stmt, StmtVisitor
 from tokens import Token, TokenType
 
 
 class LoxRuntimeError(RuntimeError):
+
     def __init__(self, token: Token, message: str) -> None:
+
         super().__init__(message)
         self.token = token
 
@@ -16,12 +19,11 @@ class LoxRuntimeError(RuntimeError):
         return super().__repr__()
 
 
-class Interpreter(Visitor[str]):
+class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
 
     def _evaluate(self, expr: Expr | None) -> Any:
         if expr is None:
-            self.ast = ""
-            return
+            return None
 
         return expr.accept(self)
 
@@ -32,50 +34,43 @@ class Interpreter(Visitor[str]):
         return a == b
 
     def _check_number_operand(self, operator: Token, operand: Any) -> None:
-        if isinstance(operand, float):
-            return
-
-        raise LoxRuntimeError(operator, "Error: Operand must be [float]")
+        if not isinstance(operand, float):
+            raise LoxRuntimeError(operator, "Operand must be a number.")
 
     def _check_number_operands(self, operator: Token, left: Any, right: Any) -> None:
-        if isinstance(left, float) and isinstance(right, float):
-            return
-
-        raise LoxRuntimeError(operator, "Error: Operands must be [float,float].")
+        if not (isinstance(left, float) and isinstance(right, float)):
+            raise LoxRuntimeError(operator, "Operands must be numbers.")
 
     def _stringify(self, obj: Any) -> str:
         if obj is None:
             return "null"
-
         if isinstance(obj, float):
             return str(int(obj)) if obj % 1 == 0 else str(obj)
-
         return str(obj)
 
-    def interpret(self, expr: Expr | None) -> None:
+    def _execute(self, stmt: Stmt) -> None:
+        stmt.accept(self)
+
+    def interpret(self, statements: List[Stmt]) -> None:
         try:
-            value: Any = self._evaluate(expr)
-            print(self._stringify(value))
+            for statement in statements:
+                self._execute(statement)
         except LoxRuntimeError as e:
             print(e)
 
     @override
-    def visit_literal_expr(self, expr: Expr) -> Any:
-        assert isinstance(expr, Literal)
+    def visit_literal_expr(self, expr: Literal) -> Any:
         return expr.value
 
     @override
-    def visit_grouping_expr(self, expr: Expr) -> Any:
-        assert isinstance(expr, Grouping)
+    def visit_grouping_expr(self, expr: Grouping) -> Any:
         return self._evaluate(expr.expression)
 
     @override
-    def visit_unary_expr(self, expr: Expr) -> Any:
-        assert isinstance(expr, Unary)
-
+    def visit_unary_expr(self, expr: Unary) -> Any:
         right: Any = self._evaluate(expr.right)
 
-        match (expr.operator.type):
+        match expr.operator.type:
             case TokenType.MINUS:
                 self._check_number_operand(expr.operator, right)
                 return -right
@@ -84,46 +79,35 @@ class Interpreter(Visitor[str]):
         return None
 
     @override
-    def visit_binary_expr(self, expr: Expr) -> Any:
-        assert isinstance(expr, Binary)
-
+    def visit_binary_expr(self, expr: Binary) -> Any:
         left: Any = self._evaluate(expr.left)
         right: Any = self._evaluate(expr.right)
 
-        match (expr.operator.type):
+        match expr.operator.type:
             case TokenType.MINUS:
                 self._check_number_operands(expr.operator, left, right)
                 return left - right
             case TokenType.SLASH:
                 self._check_number_operands(expr.operator, left, right)
-                if int(left) != 0 and int(right) != 0:
-                    return left / right
-                raise LoxRuntimeError(expr.operator, "Error: division by zero")
+                if right == 0:
+                    raise LoxRuntimeError(expr.operator, "Division by zero.")
+                return left / right
             case TokenType.STAR:
                 if isinstance(left, float) and isinstance(right, float):
                     return cast(float, left) * cast(float, right)
                 elif isinstance(left, str) and isinstance(right, float):
-                    return cast(str, left) * int(right)  # TODO:"x"*4.2
-                else:
-                    raise LoxRuntimeError(
-                        expr.operator,
-                        "Error: Operands must be [float, float] or [str, float]",
-                    )
+                    return cast(str, left) * int(right)
+                raise LoxRuntimeError(
+                    expr.operator, "Operands must be numbers or a string and a number."
+                )
             case TokenType.PLUS:
                 if isinstance(left, float) and isinstance(right, float):
                     return cast(float, left) + cast(float, right)
                 elif isinstance(left, str) and isinstance(right, str):
                     return cast(str, left) + cast(str, right)
-                elif (isinstance(left, str) and isinstance(right, float)) or (
-                    isinstance(left, float) and isinstance(right, str)
-                ):
-                    return str(left) + str(right)
-                else:
-                    raise LoxRuntimeError(
-                        expr.operator,
-                        "Error: Operands must be [str, str] or [float, float]",
-                    )
-
+                raise LoxRuntimeError(
+                    expr.operator, "Operands must be two numbers or two strings."
+                )
             case TokenType.GREATER:
                 self._check_number_operands(expr.operator, left, right)
                 return left > right
@@ -140,3 +124,12 @@ class Interpreter(Visitor[str]):
                 return not self._is_equal(left, right)
             case TokenType.EQUAL_EQUAL:
                 return self._is_equal(left, right)
+
+    @override
+    def visit_expression_stmt(self, stmt: Expression) -> None:
+        self._evaluate(stmt.expression)
+
+    @override
+    def visit_print_stmt(self, stmt: Print) -> None:
+        value: Any = self._evaluate(stmt.expression)
+        print(self._stringify(value))

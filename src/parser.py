@@ -1,7 +1,8 @@
-from typing import List, Tuple, Union
+from typing import List
 
 from error_handler import ErrorHandler, ParseError
 from expr import Binary, Expr, Grouping, Literal, Unary
+from stmt import Expression, Print, Stmt
 from tokens import Token, TokenType
 
 # Expression Grammar
@@ -17,51 +18,38 @@ from tokens import Token, TokenType
 
 
 class Parser:
+
     def __init__(
         self, tokens: List[Token], error_handler: ErrorHandler = ErrorHandler()
     ):
-        self.tokens = tokens
-        self.current = 0
-        self.error_handler = error_handler
+        self.tokens: List[Token] = tokens
+        self.current: int = 0
+        self.error_handler: ErrorHandler = error_handler
 
-    # Public Interface
-    def parse(self) -> Expr | None:
-        try:
-            return self.expression()
-        except ParseError:
-            return None
+    def parse(self) -> List[Stmt]:
+        statements: List[Stmt] = []
+        while not self._is_at_end():
+            statements.append(self._statement())
 
-    # Private Utilities
-    def _advance(self) -> Token:
-        if not self._is_at_end():
-            self.current += 1
-        return self._previous()
+        return statements
 
-    def _check(self, type: TokenType) -> bool:
-        return False if self._is_at_end() else self._peek().type == type
+    # Statement Parsing
+    def _statement(self) -> Expression | Print:
+        if self._match(TokenType.PRINT):
+            return self._print_statement()
+        return self._expression_statement()
 
-    def _match(self, *types: TokenType) -> bool:
-        for type in types:
-            if self._check(type):
-                self._advance()
-                return True
-        return False
+    def _print_statement(self) -> Print:
+        value: Expr = self.expression()
+        self._consume(TokenType.SEMICOLON, "Expect ';' after value.")
+        return Print(value)
 
-    def _is_at_end(self) -> bool:
-        return self._peek().type == TokenType.EOF
+    def _expression_statement(self) -> Expression:
+        expr: Expr = self.expression()
+        self._consume(TokenType.SEMICOLON, "Expect ';' after expression.")
+        return Expression(expr)
 
-    def _peek(self) -> Token:
-        return self.tokens[self.current]
-
-    def _previous(self) -> Token:
-        return self.tokens[self.current - 1]
-
-    def _consume(self, type: TokenType, message: str):
-        if self._check(type):
-            return self._advance()
-        raise self.error_handler.parse_error(token=self._peek(), message=message)
-
-    # Grammar Rule Methods (from highest to lowest precedence)
+    # Expression Parsing
     def expression(self) -> Expr:
         return self.equality()
 
@@ -138,11 +126,39 @@ class Parser:
             token=self._peek(), message="Expect expression."
         )
 
-    # Error Handling
+    # Utility Methods
+    def _advance(self) -> Token:
+        if not self._is_at_end():
+            self.current += 1
+        return self._previous()
+
+    def _check(self, type: TokenType) -> bool:
+        return False if self._is_at_end() else self._peek().type == type
+
+    def _match(self, *types: TokenType) -> bool:
+        for type in types:
+            if self._check(type):
+                self._advance()
+                return True
+        return False
+
+    def _is_at_end(self) -> bool:
+        return self._peek().type == TokenType.EOF
+
+    def _peek(self) -> Token:
+        return self.tokens[self.current]
+
+    def _previous(self) -> Token:
+        return self.tokens[self.current - 1]
+
+    def _consume(self, type: TokenType, message: str) -> Token:
+        if self._check(type):
+            return self._advance()
+        raise self.error_handler.parse_error(token=self._peek(), message=message)
+
     def _synchronize(self) -> None:
         self._advance()
 
-        # Advance until a statement boundary
         while not self._is_at_end():
             if self._previous().type == TokenType.SEMICOLON:
                 return

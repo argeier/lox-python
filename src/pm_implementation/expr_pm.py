@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Any
 
 
@@ -5,32 +6,28 @@ class Expr:
     pass
 
 
+@dataclass
 class Binary(Expr):
     __match_args__ = ("left", "operator", "right")
-
-    def __init__(self, left: Expr, operator: str, right: Expr) -> None:
-        self.left = left
-        self.operator = operator
-        self.right = right
+    left: Expr
+    operator: str
+    right: Expr
 
 
-class Grouping(Expr):
-    __match_args__ = ("expression",)
-
-    def __init__(self, expression: Expr):
-        self.expression = expression
-
-
-class Literal(Expr):
-    __match_args__ = ("value",)
-
-    def __init__(self, value: Any) -> None:
-        self.value = value
-
-
+@dataclass
 class Unary(Expr):
     __match_args__ = ("operator", "right")
+    operator: str
+    right: Expr
 
-    def __init__(self, operator: str, right: Expr) -> None:
-        self.operator = operator
-        self.right = right
+
+@dataclass
+class Literal(Expr):
+    __match_args__ = ("value",)
+    value: Any
+
+
+@dataclass
+class Grouping(Expr):
+    __match_args__ = ("expression",)
+    expression: Expr

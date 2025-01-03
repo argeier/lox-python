@@ -12,25 +12,11 @@ from tokens import KEYWORDS, Token, TokenType
 
 
 class TestScanner(unittest.TestCase):
-    """
-    Unit tests for the Scanner class.
-    Ensures that tokens are scanned correctly, comments are ignored,
-    and errors are handled appropriately.
-    """
 
     def setUp(self) -> None:
-        """
-        Set up a reusable error handler for the tests.
-        """
         self.error_handler: ErrorHandler = ErrorHandler()
 
     def test_scan_tokens(self) -> None:
-        """
-        Test that the scanner generates the correct tokens for the provided Lox code.
-
-        Ensures that all tokens are correctly identified, and the expected sequence
-        of tokens is produced for the given code.
-        """
         lox_code = """/* This is a comment
         /* Nested comment */
         Still inside the outer comment */
@@ -120,11 +106,6 @@ class TestScanner(unittest.TestCase):
         self.assertEqual(actual_types, expected_types)
 
     def test_comment_handling(self) -> None:
-        """
-        Test that comments, including nested comments, are ignored.
-
-        Ensures that the scanner does not include tokens for text inside comments.
-        """
         lox_code = """
         /* Outer comment
            /* Nested comment */
@@ -150,11 +131,6 @@ class TestScanner(unittest.TestCase):
         self.assertEqual(actual_types, expected_types)
 
     def test_error_handling(self) -> None:
-        """
-        Test that the error handler catches and reports invalid input.
-
-        Ensures that unterminated strings or other errors are correctly identified and reported.
-        """
         lox_code = """
         "Unterminated string
         """
@@ -167,11 +143,6 @@ class TestScanner(unittest.TestCase):
         self.assertIn("Unterminated string", "\n".join(self.error_handler.errors))
 
     def test_nested_comments(self) -> None:
-        """
-        Test that nested comments are correctly ignored.
-
-        Ensures that the scanner skips over text inside nested comments and processes valid code.
-        """
         lox_code = """
         /* Comment
            /* Nested */
