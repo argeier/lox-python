@@ -1,25 +1,16 @@
 from typing import Any, List, cast, override
 
-from expr import Binary, Expr, ExprVisitor, Grouping, Literal, Unary
-from stmt import Expression, Print, Stmt, StmtVisitor
+from expr import Binary, Expr, ExprVisitor, Grouping, Literal, Unary, Variable, Assign
+from stmt import Expression, Print, Stmt, StmtVisitor, Var, Block
 from tokens import Token, TokenType
-
-
-class LoxRuntimeError(RuntimeError):
-
-    def __init__(self, token: Token, message: str) -> None:
-
-        super().__init__(message)
-        self.token = token
-
-    def __str__(self) -> str:
-        return super().__str__()
-
-    def __repr__(self) -> str:
-        return super().__repr__()
+from environment import Environment
+from error_handler import LoxRuntimeError
 
 
 class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
+
+    def __init__(self) -> None:
+        self._environment = Environment()
 
     def _evaluate(self, expr: Expr | None) -> Any:
         if expr is None:
@@ -43,13 +34,26 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
 
     def _stringify(self, obj: Any) -> str:
         if obj is None:
-            return "null"
+            raise LoxRuntimeError(
+                obj, "Error: Variable accessment before initialization or assignment"
+            )
+            # return "null" # implicit initializiation as null
         if isinstance(obj, float):
             return str(int(obj)) if obj % 1 == 0 else str(obj)
         return str(obj)
 
     def _execute(self, stmt: Stmt) -> None:
         stmt.accept(self)
+
+    def _execute_block(self, statements: List[Stmt], environment: Environment) -> None:
+        previous: Environment = self._environment
+
+        try:
+            self._environment = environment
+            for statement in statements:
+                self._execute(statement)
+        finally:
+            self._environment = previous
 
     def interpret(self, statements: List[Stmt]) -> None:
         try:
@@ -126,6 +130,10 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
                 return self._is_equal(left, right)
 
     @override
+    def visit_variable_expr(self, expr: "Variable") -> Any:
+        return self._environment.get(expr.name)
+
+    @override
     def visit_expression_stmt(self, stmt: Expression) -> None:
         self._evaluate(stmt.expression)
 
@@ -133,3 +141,23 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
     def visit_print_stmt(self, stmt: Print) -> None:
         value: Any = self._evaluate(stmt.expression)
         print(self._stringify(value))
+
+    @override
+    def visit_var_stmt(self, stmt: "Var") -> None:
+        value: Any = None
+        if stmt.initializer is not None:
+            value = self._evaluate(stmt.initializer)
+
+        self._environment.define(stmt.name.lexeme, value)
+        return None
+
+    @override
+    def visit_assign_expr(self, expr: "Assign") -> Any:
+        value: Any = self._evaluate(expr.value)
+        self._environment.assign(expr.name, value)
+        return value
+
+    @override
+    def visit_block_stmt(self, stmt: "Block") -> None:
+        self._execute_block(stmt.statements, Environment(self._environment))
+        return None

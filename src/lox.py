@@ -28,6 +28,7 @@ def main() -> None:
 
 
 def run_prompt(error_handler: ErrorHandler, interpreter: Interpreter) -> None:
+    # TODO: Fix REPL
     while True:
         try:
             line = input(">>> ")
@@ -64,14 +65,6 @@ def run(source: str, error_handler: ErrorHandler, interpreter: Interpreter) -> N
     tokens: List[Token] = scanner.scan_tokens()
     parser: Parser = Parser(tokens, error_handler)
     statements: List[Stmt] = parser.parse()
-
-    # ast_printer: AstPrinter = AstPrinter()
-    # for token in tokens:
-    #     print(
-    #         f"TokenType: {token.type}, Lexeme: {token.lexeme}, Literal: {token.literal}, Line: {token.line}, PythonType: {type(token.literal)}"
-    #     )
-    # ast_printer.create_ast(expression)
-    # ast_printer.visualize_ast()
 
     if error_handler.had_error:
         error_handler.print_all_errors()

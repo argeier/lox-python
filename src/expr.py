@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, TypeVar, override
 
 from tokens import Token
 
@@ -24,6 +24,14 @@ class ExprVisitor(ABC, Generic[T]):
     def visit_unary_expr(self, expr: "Unary") -> T:
         pass
 
+    @abstractmethod
+    def visit_variable_expr(self, expr: "Variable") -> T:
+        pass
+
+    @abstractmethod
+    def visit_assign_expr(self, expr: "Assign") -> T:
+        pass
+
 
 class Expr(ABC):
 
@@ -39,6 +47,7 @@ class Binary(Expr):
         self.operator: Token = operator
         self.right: Expr = right
 
+    @override
     def accept(self, visitor: ExprVisitor[T]) -> T:
         return visitor.visit_binary_expr(self)
 
@@ -57,6 +66,7 @@ class Literal(Expr):
     def __init__(self, value: Any) -> None:
         self.value: Any = value
 
+    @override
     def accept(self, visitor: ExprVisitor[T]) -> T:
         return visitor.visit_literal_expr(self)
 
@@ -67,5 +77,25 @@ class Unary(Expr):
         self.operator: Token = operator
         self.right: Expr = right
 
+    @override
     def accept(self, visitor: ExprVisitor[T]) -> T:
         return visitor.visit_unary_expr(self)
+
+
+class Variable(Expr):
+
+    def __init__(self, name: Token) -> None:
+        self.name: Token = name
+
+    @override
+    def accept(self, visitor: ExprVisitor[T]) -> T:
+        return visitor.visit_variable_expr(self)
+
+
+class Assign(Expr):
+    def __init__(self, name: Token, value: Expr) -> None:
+        self.name = name
+        self.value = value
+
+    def accept(self, visitor: ExprVisitor) -> None:
+        return visitor.visit_assign_expr(self)
