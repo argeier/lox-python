@@ -1,7 +1,7 @@
-from typing import Dict, Any, Optional
-from tokens import Token
+from typing import Any, Dict, Optional
 
 from error_handler import LoxRuntimeError
+from tokens import Token
 
 
 class Environment:

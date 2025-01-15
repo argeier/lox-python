@@ -1,10 +1,20 @@
 from typing import Any, List, cast, override
 
-from expr import Binary, Expr, ExprVisitor, Grouping, Literal, Unary, Variable, Assign
-from stmt import Expression, Print, Stmt, StmtVisitor, Var, Block
-from tokens import Token, TokenType
 from environment import Environment
 from error_handler import LoxRuntimeError
+from expr import (
+    Assign,
+    Binary,
+    Expr,
+    ExprVisitor,
+    Grouping,
+    Literal,
+    Unary,
+    Variable,
+    Logical,
+)
+from stmt import Block, Expression, Print, Stmt, StmtVisitor, Var, If, While
+from tokens import Token, TokenType
 
 
 class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
@@ -134,6 +144,25 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
         return self._environment.get(expr.name)
 
     @override
+    def visit_assign_expr(self, expr: "Assign") -> Any:
+        value: Any = self._evaluate(expr.value)
+        self._environment.assign(expr.name, value)
+        return value
+
+    @override
+    def visit_logical_expr(self, expr: "Logical") -> Any:
+        left: Any = self._evaluate(expr.left)
+
+        if expr.operator.type == TokenType.OR:
+            if self._is_truthy(left):
+                return left
+        else:
+            if not self._is_truthy(left):
+                return left
+
+        return self._evaluate(expr.right)
+
+    @override
     def visit_expression_stmt(self, stmt: Expression) -> None:
         self._evaluate(stmt.expression)
 
@@ -152,12 +181,20 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
         return None
 
     @override
-    def visit_assign_expr(self, expr: "Assign") -> Any:
-        value: Any = self._evaluate(expr.value)
-        self._environment.assign(expr.name, value)
-        return value
-
-    @override
     def visit_block_stmt(self, stmt: "Block") -> None:
         self._execute_block(stmt.statements, Environment(self._environment))
+        return None
+
+    @override
+    def visit_if_stmt(self, stmt: "If") -> None:
+        if self._is_truthy(self._evaluate(stmt.condition)):
+            self._execute(stmt.then_branch)
+        elif stmt.else_branch is not None:
+            self._execute(stmt.else_branch)
+        return None
+
+    @override
+    def visit_while_stmt(self, stmt: "While") -> None:
+        while self._is_truthy(self._evaluate(stmt.condition)):
+            self._execute(stmt.body)
         return None

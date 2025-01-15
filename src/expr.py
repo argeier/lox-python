@@ -32,6 +32,10 @@ class ExprVisitor(ABC, Generic[T]):
     def visit_assign_expr(self, expr: "Assign") -> T:
         pass
 
+    @abstractmethod
+    def visit_logical_expr(self, expr: "Logical") -> T:
+        pass
+
 
 class Expr(ABC):
 
@@ -57,6 +61,7 @@ class Grouping(Expr):
     def __init__(self, expression: Expr) -> None:
         self.expression: Expr = expression
 
+    @override
     def accept(self, visitor: ExprVisitor[T]) -> T:
         return visitor.visit_grouping_expr(self)
 
@@ -97,5 +102,17 @@ class Assign(Expr):
         self.name = name
         self.value = value
 
+    @override
     def accept(self, visitor: ExprVisitor) -> None:
         return visitor.visit_assign_expr(self)
+
+
+class Logical(Expr):
+    def __init__(self, left: Expr, operator: Token, right: Expr) -> None:
+        self.left = left
+        self.operator = operator
+        self.right = right
+
+    @override
+    def accept(self, visitor: ExprVisitor) -> None:
+        return visitor.visit_logical_expr(self)

@@ -3,9 +3,7 @@ from parser import Parser
 from pathlib import Path
 from typing import List
 
-from ast_printer import AstPrinter
 from error_handler import ErrorHandler
-from expr import Expr
 from interpreter import Interpreter
 from scanner import Scanner
 from stmt import Stmt
