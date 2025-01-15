@@ -1,8 +1,8 @@
 from typing import List
 
 from error_handler import ErrorHandler, ParseError
-from expr import Assign, Binary, Expr, Grouping, Literal, Unary, Variable, Logical
-from stmt import Block, Expression, Print, Stmt, Var, If, While
+from expr import Assign, Binary, Expr, Grouping, Literal, Logical, Unary, Variable
+from stmt import Block, Expression, If, Print, Stmt, Var, While
 from tokens import Token, TokenType
 
 

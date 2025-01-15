@@ -9,11 +9,11 @@ from expr import (
     ExprVisitor,
     Grouping,
     Literal,
+    Logical,
     Unary,
     Variable,
-    Logical,
 )
-from stmt import Block, Expression, Print, Stmt, StmtVisitor, Var, If, While
+from stmt import Block, Expression, If, Print, Stmt, StmtVisitor, Var, While
 from tokens import Token, TokenType
 
 
