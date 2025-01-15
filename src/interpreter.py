@@ -1,7 +1,7 @@
 from typing import Any, List, cast, override
 
 from environment import Environment
-from error_handler import LoxRuntimeError
+from error_handler import BreakException, LoxRuntimeError
 from expr import (
     Assign,
     Binary,
@@ -13,7 +13,7 @@ from expr import (
     Unary,
     Variable,
 )
-from stmt import Block, Expression, If, Print, Stmt, StmtVisitor, Var, While
+from stmt import Block, Break, Expression, If, Print, Stmt, StmtVisitor, Var, While
 from tokens import Token, TokenType
 
 
@@ -196,5 +196,12 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
     @override
     def visit_while_stmt(self, stmt: "While") -> None:
         while self._is_truthy(self._evaluate(stmt.condition)):
-            self._execute(stmt.body)
+            try:
+                self._execute(stmt.body)
+            except BreakException:
+                break
         return None
+
+    @override
+    def visit_break_stmt(self, stmt: "Break") -> None:
+        raise BreakException()

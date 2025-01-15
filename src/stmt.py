@@ -32,6 +32,10 @@ class StmtVisitor(ABC, Generic[T]):
     def visit_while_stmt(self, stmt: "While") -> T:
         pass
 
+    @abstractmethod
+    def visit_break_stmt(self, stmt: "Break") -> T:
+        pass
+
 
 class Stmt(ABC):
     @abstractmethod
@@ -97,3 +101,12 @@ class While(Stmt):
     @override
     def accept(self, visitor: StmtVisitor[T]) -> None:
         return visitor.visit_while_stmt(self)
+
+
+class Break(Stmt):
+    def __init__(self) -> None:
+        pass
+
+    @override
+    def accept(self, visitor: StmtVisitor[T]) -> None:
+        return visitor.visit_break_stmt(self)

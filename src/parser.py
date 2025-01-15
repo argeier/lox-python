@@ -2,7 +2,7 @@ from typing import List
 
 from error_handler import ErrorHandler, ParseError
 from expr import Assign, Binary, Expr, Grouping, Literal, Logical, Unary, Variable
-from stmt import Block, Expression, If, Print, Stmt, Var, While
+from stmt import Block, Break, Expression, If, Print, Stmt, Var, While
 from tokens import Token, TokenType
 
 
@@ -48,6 +48,8 @@ class Parser:
             return self._print_statement()
         if self._match(TokenType.WHILE):
             return self._while_statement()
+        if self._match(TokenType.BREAK):
+            return self._break_statement()
         if self._match(TokenType.LEFT_BRACE):
             return Block(self._block())
         return self._expression_statement()
@@ -120,6 +122,10 @@ class Parser:
         self._consume(TokenType.RIGHT_PAREN, "Expect ')' after while condition.")
         body: Stmt = self._statement()
         return While(condition, body)
+
+    def _break_statement(self) -> Stmt:
+        self._consume(TokenType.SEMICOLON, "Expect ';' after 'break'.")
+        return Break()
 
     def _expression_statement(self) -> Expression:
         expr: Expr = self._expression()

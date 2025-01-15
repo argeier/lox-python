@@ -4,6 +4,10 @@ from typing import List
 from tokens import Token
 
 
+class BreakException(Exception):
+    pass
+
+
 class LoxRuntimeError(RuntimeError):
 
     def __init__(self, token: Token, message: str) -> None:
