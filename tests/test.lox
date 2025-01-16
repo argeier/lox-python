@@ -1,0 +1,84 @@
+/* This is a comment
+   /* Nested comment */
+
+
+
+class HelloWorld {
+  fun sayHello() {
+    print "Hello, World!";
+  }
+}
+
+var counter = 0;
+
+while (counter < 10) {
+  print counter;
+  counter = counter + 1;
+}
+
+if (counter == 10) {
+  print "Counter reached 10.";
+} else {
+  print "POOP.";
+}
+*/
+
+// 1 + 2 * (3 - 4 / 4.0);
+// 1 + 2 * 3 - 4 / 2;
+// print (1 + 2) * (3 - 4) / 2;
+// print "x";
+// print "one";
+// print true;
+// print 2 + 1;
+// print 2 > 1;
+
+// var a = 1;
+// var b = 2;
+// print a + b;
+// print a;
+// print b;
+
+//var a = "global a";
+//var b = "global b";
+//var c = "global c";
+//{
+//  var a = "outer a";
+//  var b = "outer b";
+//  {
+//    var a = "inner a";
+//    print a;
+//    print b;
+//    print c;
+//   }
+//   print a;
+//   print b;
+//   print c;
+// }
+// print a;
+// print b;
+// print c;
+// 
+// var a = 1;
+// {
+//   var a = a + 2;
+//   print a;
+// }
+
+// print "hi" or 2; // "hi".
+// print nil or "yes"; // "yes".
+// 
+// var x = 0;
+// 
+// while (x != 400) {
+//   print x;
+//   x = x + 1;
+// }
+
+var x=0;
+while (true){
+  x = x + 1;
+  print x;
+  if (x==20) {
+    break;
+  }
+}
