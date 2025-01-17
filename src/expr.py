@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Generic, TypeVar, override
+from typing import Any, Generic, List, TypeVar, override
 
 from tokens import Token
 
@@ -10,6 +10,10 @@ class ExprVisitor(ABC, Generic[T]):
 
     @abstractmethod
     def visit_binary_expr(self, expr: "Binary") -> T:
+        pass
+
+    @abstractmethod
+    def visit_call_expr(self, expr: "Call") -> T:
         pass
 
     @abstractmethod
@@ -54,6 +58,17 @@ class Binary(Expr):
     @override
     def accept(self, visitor: ExprVisitor[T]) -> T:
         return visitor.visit_binary_expr(self)
+
+
+class Call(Expr):
+    def __init__(self, callee: Expr, paren: Token, arguments: List[Expr]) -> None:
+        self.callee: Expr = callee
+        self.paren: Token = paren
+        self.arguments: List[Expr] = arguments
+
+    @override
+    def accept(self, visitor: ExprVisitor[T]) -> T:
+        return visitor.visit_call_expr(self)
 
 
 class Grouping(Expr):
@@ -103,7 +118,7 @@ class Assign(Expr):
         self.value = value
 
     @override
-    def accept(self, visitor: ExprVisitor) -> None:
+    def accept(self, visitor: ExprVisitor[T]) -> T:
         return visitor.visit_assign_expr(self)
 
 
@@ -114,5 +129,5 @@ class Logical(Expr):
         self.right = right
 
     @override
-    def accept(self, visitor: ExprVisitor) -> None:
+    def accept(self, visitor: ExprVisitor[T]) -> T:
         return visitor.visit_logical_expr(self)

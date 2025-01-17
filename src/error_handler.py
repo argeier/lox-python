@@ -1,5 +1,5 @@
 import traceback
-from typing import List
+from typing import Any, List
 
 from tokens import Token
 
@@ -28,6 +28,13 @@ class ParseError(RuntimeError):
         super().__init__(message)
         self.token: Token = token
         self.error_handler: ErrorHandler = ErrorHandler()
+
+
+class ReturnException(Exception):
+
+    def __init__(self, value: Any) -> None:
+        super().__init__()
+        self.value = value
 
 
 class ErrorHandler:

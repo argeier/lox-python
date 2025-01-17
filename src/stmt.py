@@ -36,10 +36,18 @@ class StmtVisitor(ABC, Generic[T]):
     def visit_break_stmt(self, stmt: "Break") -> T:
         pass
 
+    @abstractmethod
+    def visit_function_stmt(self, stmt: "Function") -> T:
+        pass
+
+    @abstractmethod
+    def visit_return_stmt(self, stmt: "Return") -> T:
+        pass
+
 
 class Stmt(ABC):
     @abstractmethod
-    def accept(self, visitor: StmtVisitor) -> T:
+    def accept(self, visitor: StmtVisitor[T]) -> T:
         pass
 
 
@@ -48,7 +56,7 @@ class Expression(Stmt):
         self.expression: Expr = expression
 
     @override
-    def accept(self, visitor: StmtVisitor[T]) -> None:
+    def accept(self, visitor: StmtVisitor[T]) -> T:
         return visitor.visit_expression_stmt(self)
 
 
@@ -57,7 +65,7 @@ class Print(Stmt):
         self.expression: Expr = expression
 
     @override
-    def accept(self, visitor: StmtVisitor[T]) -> None:
+    def accept(self, visitor: StmtVisitor[T]) -> T:
         return visitor.visit_print_stmt(self)
 
 
@@ -67,7 +75,7 @@ class Var(Stmt):
         self.initializer: Expr = initializer
 
     @override
-    def accept(self, visitor: StmtVisitor[T]) -> None:
+    def accept(self, visitor: StmtVisitor[T]) -> T:
         return visitor.visit_var_stmt(self)
 
 
@@ -76,8 +84,19 @@ class Block(Stmt):
         self.statements = statements
 
     @override
-    def accept(self, visitor: StmtVisitor[T]) -> None:
+    def accept(self, visitor: StmtVisitor[T]) -> T:
         return visitor.visit_block_stmt(self)
+
+
+class Function(Stmt):
+    def __init__(self, name: Token, params: List[Token], body: List[Stmt]) -> None:
+        self.name: Token = name
+        self.params: List[Token] = params
+        self.body: List[Stmt] = body
+
+    @override
+    def accept(self, visitor: StmtVisitor[T]) -> T:
+        return visitor.visit_function_stmt(self)
 
 
 class If(Stmt):
@@ -89,7 +108,7 @@ class If(Stmt):
         self.else_branch = else_branch
 
     @override
-    def accept(self, visitor: StmtVisitor[T]) -> None:
+    def accept(self, visitor: StmtVisitor[T]) -> T:
         return visitor.visit_if_stmt(self)
 
 
@@ -99,7 +118,7 @@ class While(Stmt):
         self.body = body
 
     @override
-    def accept(self, visitor: StmtVisitor[T]) -> None:
+    def accept(self, visitor: StmtVisitor[T]) -> T:
         return visitor.visit_while_stmt(self)
 
 
@@ -108,5 +127,15 @@ class Break(Stmt):
         pass
 
     @override
-    def accept(self, visitor: StmtVisitor[T]) -> None:
+    def accept(self, visitor: StmtVisitor[T]) -> T:
         return visitor.visit_break_stmt(self)
+
+
+class Return(Stmt):
+    def __init__(self, keyword: Token, value: Expr | None) -> None:
+        self.keyword: Token = keyword
+        self.value: Expr | None = value
+
+    @override
+    def accept(self, visitor: StmtVisitor[T]) -> T:
+        return visitor.visit_return_stmt(self)

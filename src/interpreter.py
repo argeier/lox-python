@@ -1,10 +1,12 @@
-from typing import Any, List, cast, override
+from typing import TYPE_CHECKING, Any, Final, List, cast, override
 
+from callable import ClockCallable, LoxCallable
 from environment import Environment
-from error_handler import BreakException, LoxRuntimeError
+from error_handler import BreakException, LoxRuntimeError, ReturnException
 from expr import (
     Assign,
     Binary,
+    Call,
     Expr,
     ExprVisitor,
     Grouping,
@@ -13,14 +15,32 @@ from expr import (
     Unary,
     Variable,
 )
-from stmt import Block, Break, Expression, If, Print, Stmt, StmtVisitor, Var, While
+from stmt import (
+    Block,
+    Break,
+    Expression,
+    Function,
+    If,
+    Print,
+    Return,
+    Stmt,
+    StmtVisitor,
+    Var,
+    While,
+)
 from tokens import Token, TokenType
+
+if TYPE_CHECKING:
+    from function import LoxFunction
 
 
 class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
 
     def __init__(self) -> None:
-        self._environment = Environment()
+        self.globals: Final[Environment] = Environment()
+        self._environment: Environment = self.globals
+
+        self.globals.define("clock", ClockCallable())
 
     def _evaluate(self, expr: Expr | None) -> Any:
         if expr is None:
@@ -45,7 +65,8 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
     def _stringify(self, obj: Any) -> str:
         if obj is None:
             raise LoxRuntimeError(
-                obj, "Error: Variable accessment before initialization or assignment"
+                Token(TokenType.NIL, "nil", None, 0),  # Create a dummy token
+                "Error: Variable access before initialization or assignment",
             )
             # return "null" # implicit initializiation as null
         if isinstance(obj, float):
@@ -163,6 +184,27 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
         return self._evaluate(expr.right)
 
     @override
+    def visit_call_expr(self, expr: "Call") -> Any:
+        callee: Any = self._evaluate(expr.callee)
+        arguements: List[Any] = []
+
+        for argument in expr.arguments:
+            arguements.append(self._evaluate(argument))
+
+        if not isinstance(callee, LoxCallable):
+            raise LoxRuntimeError(expr.paren, "Can only call functions and classes.")
+
+        function: LoxCallable = cast(LoxCallable, callee)
+
+        if len(arguements) != function.arity():
+            raise LoxRuntimeError(
+                expr.paren,
+                f"Expected {function.arity()} arguments but got {len(arguements)}.",
+            )
+
+        return function.call(self, arguements)
+
+    @override
     def visit_expression_stmt(self, stmt: Expression) -> None:
         self._evaluate(stmt.expression)
 
@@ -205,3 +247,19 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
     @override
     def visit_break_stmt(self, stmt: "Break") -> None:
         raise BreakException()
+
+    @override
+    def visit_function_stmt(self, stmt: Function) -> None:
+        from function import LoxFunction  # to avoid circular import
+
+        function: LoxFunction = LoxFunction(stmt, self._environment)
+        self._environment.define(stmt.name.lexeme, function)
+        return None
+
+    @override
+    def visit_return_stmt(self, stmt: "Return"):
+        value: Any = None
+        if stmt.value is not None:
+            value = self._evaluate(stmt.value)
+
+        raise ReturnException(value)
