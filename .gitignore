@@ -27,6 +27,7 @@ dist/
 .idea/
 *.sublime-project
 *.sublime-workspace
+.style.yapf
 
 # Logs and debugging files
 *.log
@@ -64,3 +65,5 @@ htmlcov/
 nosetests.xml
 .testrepository/
 .cache/
+
+
