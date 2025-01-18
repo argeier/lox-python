@@ -1,15 +1,15 @@
-import sys
 import shutil
+import sys
+from parser import Parser
 from pathlib import Path
 from typing import List, Optional
 
+from ast_printer import AstPrinter
 from error_handler import ErrorHandler
 from interpreter import Interpreter
-from parser import Parser
 from scanner import Scanner
 from stmt import Stmt
 from tokens import Token
-from ast_printer import AstPrinter
 
 
 def main() -> None:
@@ -24,9 +24,9 @@ def main() -> None:
     ast_enabled = False
 
     # Check for '-ast' flag and remove it from arguments if present
-    if '-ast' in args:
+    if "-ast" in args:
         ast_enabled = True
-        args.remove('-ast')
+        args.remove("-ast")
 
     if len(args) == 0:
         print("Lox REPL")
@@ -38,7 +38,9 @@ def main() -> None:
         sys.exit(64)
 
 
-def run_prompt(error_handler: ErrorHandler, interpreter: Interpreter, ast_enabled: bool) -> None:
+def run_prompt(
+    error_handler: ErrorHandler, interpreter: Interpreter, ast_enabled: bool
+) -> None:
     """
     Runs the Lox interpreter in REPL (Read-Eval-Print Loop) mode.
 
@@ -61,7 +63,9 @@ def run_prompt(error_handler: ErrorHandler, interpreter: Interpreter, ast_enable
             error_handler.print_exception(e)
 
 
-def run_file(path: str, error_handler: ErrorHandler, interpreter: Interpreter, ast_enabled: bool) -> None:
+def run_file(
+    path: str, error_handler: ErrorHandler, interpreter: Interpreter, ast_enabled: bool
+) -> None:
     """
     Executes a Lox script from the specified file.
 
@@ -89,7 +93,12 @@ def run_file(path: str, error_handler: ErrorHandler, interpreter: Interpreter, a
         sys.exit(70)  # Exit code 70 for internal software error
 
 
-def run(source: str, error_handler: ErrorHandler, interpreter: Interpreter, ast_enabled: bool) -> None:
+def run(
+    source: str,
+    error_handler: ErrorHandler,
+    interpreter: Interpreter,
+    ast_enabled: bool,
+) -> None:
     """
     Processes the source code by scanning, parsing, optionally printing the AST,
     and interpreting the statements.

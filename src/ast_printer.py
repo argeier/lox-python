@@ -1,12 +1,33 @@
 import os
 import shutil
-from typing import List, Any, Set, Optional, override
+from typing import Any, List, Optional, Set, override
+
 from pygraphviz import AGraph
+
 from expr import (
-    Binary, Expr, ExprVisitor, Grouping, Literal, Unary, Variable, Assign, Logical, Call,
+    Assign,
+    Binary,
+    Call,
+    Expr,
+    ExprVisitor,
+    Grouping,
+    Literal,
+    Logical,
+    Unary,
+    Variable,
 )
 from stmt import (
-    Stmt, StmtVisitor, Expression, Print, Var, Block, If, While, Break, Function, Return,
+    Block,
+    Break,
+    Expression,
+    Function,
+    If,
+    Print,
+    Return,
+    Stmt,
+    StmtVisitor,
+    Var,
+    While,
 )
 from tokens import Token
 
@@ -80,19 +101,19 @@ class AstPrinter(ExprVisitor[str], StmtVisitor[str]):
         current: str = ""
 
         for char in expr:
-            if char == '(':
+            if char == "(":
                 if depth == 0 and current.strip():
                     parts.append(current.strip())
                     current = ""
                 depth += 1
                 current += char
-            elif char == ')':
+            elif char == ")":
                 depth -= 1
                 current += char
                 if depth == 0:
                     parts.append(current.strip())
                     current = ""
-            elif char == ' ' and depth == 0:
+            elif char == " " and depth == 0:
                 if current.strip():
                     parts.append(current.strip())
                     current = ""
@@ -136,7 +157,7 @@ class AstPrinter(ExprVisitor[str], StmtVisitor[str]):
                 remaining = ""
             else:
                 operator = expr_content[:space_idx]
-                remaining = expr_content[space_idx + 1:]
+                remaining = expr_content[space_idx + 1 :]
 
             node_id = f"node{counter[0]}"
             counter[0] += 1
@@ -182,22 +203,23 @@ class AstPrinter(ExprVisitor[str], StmtVisitor[str]):
             else:
                 parts.append(str(expr))
         return f"({' '.join(parts)})"
+
     @override
     def visit_binary_expr(self, expr: Binary) -> str:
         return self._parenthesize(expr.operator.lexeme, expr.left, expr.right)
-    
+
     @override
     def visit_call_expr(self, expr: Call) -> str:
         return self._parenthesize("call", expr.callee, *expr.arguments)
-    
+
     @override
     def visit_grouping_expr(self, expr: Grouping) -> str:
         return self._parenthesize("group", expr.expression)
-    
+
     @override
     def visit_literal_expr(self, expr: Literal) -> str:
         return "nil" if expr.value is None else str(expr.value)
-    
+
     @override
     def visit_logical_expr(self, expr: Logical) -> str:
         return self._parenthesize(expr.operator.lexeme, expr.left, expr.right)
@@ -224,7 +246,11 @@ class AstPrinter(ExprVisitor[str], StmtVisitor[str]):
 
     @override
     def visit_var_stmt(self, stmt: Var) -> str:
-        return self._parenthesize("var", stmt.name, stmt.initializer) if stmt.initializer else self._parenthesize("var", stmt.name)
+        return (
+            self._parenthesize("var", stmt.name, stmt.initializer)
+            if stmt.initializer
+            else self._parenthesize("var", stmt.name)
+        )
 
     @override
     def visit_block_stmt(self, stmt: Block) -> str:
@@ -233,7 +259,9 @@ class AstPrinter(ExprVisitor[str], StmtVisitor[str]):
     @override
     def visit_if_stmt(self, stmt: If) -> str:
         if stmt.else_branch:
-            return self._parenthesize("if", stmt.condition, stmt.then_branch, stmt.else_branch)
+            return self._parenthesize(
+                "if", stmt.condition, stmt.then_branch, stmt.else_branch
+            )
         return self._parenthesize("if", stmt.condition, stmt.then_branch)
 
     @override
