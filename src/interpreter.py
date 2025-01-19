@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Final, List, cast, override
+from typing import TYPE_CHECKING, Any, Dict, Final, List, cast, override
 
 from callable import ClockCallable, LoxCallable
 from environment import Environment
@@ -39,6 +39,7 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
     def __init__(self) -> None:
         self.globals: Final[Environment] = Environment()
         self._environment: Environment = self.globals
+        self._locals: Dict[Expr, int] = {}
 
         self.globals.define("clock", ClockCallable())
 
@@ -75,6 +76,9 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
 
     def _execute(self, stmt: Stmt) -> None:
         stmt.accept(self)
+
+    def resolve(self, expr: Expr, depth: int) -> None:
+        self._locals[expr] = depth
 
     def _execute_block(self, statements: List[Stmt], environment: Environment) -> None:
         previous: Environment = self._environment
@@ -162,12 +166,25 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
 
     @override
     def visit_variable_expr(self, expr: "Variable") -> Any:
-        return self._environment.get(expr.name)
+        return self._lookup_variable(expr.name, expr)
+
+    def _lookup_variable(self, name: Token, expr: Variable) -> Any:
+        distance: int = self._locals.get(expr, -1)
+        if distance != -1:
+            return self._environment.get_at(distance, name.lexeme)
+        else:
+            return self.globals.get(name)
 
     @override
     def visit_assign_expr(self, expr: "Assign") -> Any:
         value: Any = self._evaluate(expr.value)
-        self._environment.assign(expr.name, value)
+
+        distance: int = self._locals.get(expr, -1)
+        if distance != -1:
+            self._environment.assign_at(distance, expr.name, value)
+        else:
+            self.globals.assign(expr.name, value)
+
         return value
 
     @override

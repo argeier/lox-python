@@ -7,6 +7,7 @@ from typing import List, Optional
 from ast_printer import AstPrinter
 from error_handler import ErrorHandler
 from interpreter import Interpreter
+from resolver import Resolver
 from scanner import Scanner
 from stmt import Stmt
 from tokens import Token
@@ -123,6 +124,13 @@ def run(
         for i, statement in enumerate(statements):
             printer.create_ast(statement)
             printer.visualize_ast(i)
+
+    resolver: Resolver = Resolver(interpreter, error_handler)
+    resolver.resolve(statements)
+
+    if error_handler.had_error:
+        error_handler.print_all_errors()
+        return
 
     interpreter.interpret(statements)
 

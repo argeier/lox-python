@@ -41,21 +41,18 @@ class TestInterpreter(unittest.TestCase):
         self.assertEqual(result, 3.0)
 
     def test_variable_expr(self):
-        self.environment.define("x", 123)
-        expr = Variable(Token(TokenType.IDENTIFIER, "x", None, 1))
-        self.interpreter._environment = self.environment
+        self.interpreter.globals.define("x", 123)
+        expr = Variable(name=Token(TokenType.IDENTIFIER, "x", None, 1))
         result = self.interpreter.visit_variable_expr(expr)
         self.assertEqual(result, 123)
 
     def test_assign_expr(self):
-        self.environment.define("x", 123)
-        expr = Assign(Token(TokenType.IDENTIFIER, "x", None, 1), Literal(456))
-        self.interpreter._environment = self.environment
-        result = self.interpreter.visit_assign_expr(expr)
-        self.assertEqual(result, 456)
-        self.assertEqual(
-            self.environment.get(Token(TokenType.IDENTIFIER, "x", None, 1)), 456
+        self.interpreter.globals.define("x", None)
+        expr = Assign(
+            name=Token(TokenType.IDENTIFIER, "x", None, 1), value=Literal(value=123)
         )
+        result = self.interpreter.visit_assign_expr(expr)
+        self.assertEqual(result, 123)
 
     def test_logical_expr(self):
         expr = Logical(

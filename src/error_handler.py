@@ -38,14 +38,14 @@ class ReturnException(Exception):
 
 
 class ErrorHandler:
-
+    # TODO: Better Error Handling
     def __init__(self) -> None:
         self.errors: List[str] = []
         self.had_error: bool = False
 
-    def error(self, line: int, message: str) -> None:
+    def error(self, line: int | Token, message: str) -> None:
         self.had_error = True
-        self.errors.append(f"[line {line}] Error: {message}")
+        self.errors.append(f"[line or token {line}] Error: {message}")
 
     def parse_error(self, token: Token, message: str) -> ParseError:
         self.error(token.line, message)

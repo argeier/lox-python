@@ -23,15 +23,17 @@ class TestErrorHandler(unittest.TestCase):
     def test_error(self):
         self.error_handler.error(1, "Test error")
         self.assertTrue(self.error_handler.had_error)
-        self.assertIn("[line 1] Error: Test error", self.error_handler.errors)
+        self.assertIn("[line or token 1] Error: Test error", self.error_handler.errors)
 
     def test_parse_error(self):
         token = Token(TokenType.IDENTIFIER, "test", None, 1)
         with patch("builtins.print") as mock_print:
             parse_error = self.error_handler.parse_error(token, "Parse error")
             self.assertTrue(self.error_handler.had_error)
-            self.assertIn("[line 1] Error: Parse error", self.error_handler.errors)
-            mock_print.assert_called_with("[line 1] Error: Parse error")
+            self.assertIn(
+                "[line or token 1] Error: Parse error", self.error_handler.errors
+            )
+            mock_print.assert_called_with("[line or token 1] Error: Parse error")
             self.assertIsInstance(parse_error, ParseError)
             self.assertEqual(parse_error.token, token)
 
@@ -40,8 +42,8 @@ class TestErrorHandler(unittest.TestCase):
         self.error_handler.error(2, "Test error 2")
         with patch("builtins.print") as mock_print:
             self.error_handler.print_all_errors()
-            mock_print.assert_any_call("[line 1] Error: Test error 1")
-            mock_print.assert_any_call("[line 2] Error: Test error 2")
+            mock_print.assert_any_call("[line or token 1] Error: Test error 1")
+            mock_print.assert_any_call("[line or token 2] Error: Test error 2")
 
     def test_reset(self):
         self.error_handler.error(1, "Test error")

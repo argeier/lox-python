@@ -6,7 +6,7 @@ from tokens import Token
 
 class Environment:
 
-    def __init__(self, enclosing: "Environment | None" = None) -> None:
+    def __init__(self, enclosing: Optional["Environment"] = None) -> None:
         self.enclosing = enclosing
         self.values: Dict[str, Any] = {}
 
@@ -22,13 +22,28 @@ class Environment:
     def define(self, name: str, value: Any) -> None:
         self.values[name] = value
 
+    def _ancestor(self, distance: int) -> "Environment":
+        environment: "Environment" = self
+        for _ in range(distance):
+            assert environment.enclosing is not None, "Enclosing environment is None."
+            environment = environment.enclosing
+        return environment
+
+    def get_at(self, distance: int, name: str) -> Any:
+        ancestor = self._ancestor(distance)
+        return ancestor.values.get(name)
+
+    def assign_at(self, distance: int, name: Token, value: Any) -> None:
+        ancestor = self._ancestor(distance)
+        ancestor.values[name.lexeme] = value
+
     def assign(self, name: Token, value: Any) -> None:
         if name.lexeme in self.values:
             self.values[name.lexeme] = value
-            return None
+            return
 
         if self.enclosing is not None:
             self.enclosing.assign(name, value)
-            return None
+            return
 
         raise LoxRuntimeError(name, f"Undefined variable {name.lexeme}.")
