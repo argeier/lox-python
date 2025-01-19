@@ -1,66 +1,65 @@
 # Python Lox Interpreter
 
-This is a Python implementation of the Lox programming language, based on the Java code from Bob Nystrom's excellent book ["Crafting Interpreters"](https://craftinginterpreters.com/). This project was created as a learning exercise to understand how interpreters and compilers work by translating the original Java implementation into Python.
+A Python implementation of the Lox programming language, inspired by Bob Nystrom's [Crafting Interpreters](https://craftinginterpreters.com/). This project serves purely as a learning experience.
 
 ## About
 
-Lox is a small dynamically-typed programming language created for educational purposes. This interpreter implements the tree-walk interpreter described in Part I of the book ("A Tree-Walk Interpreter").
+Lox is a small, dynamically-typed language designed for educational purposes. This interpreter uses a tree-walk approach, as described in Part I of Bob Nystrom's "Crafting Interpreters," making it an excellent resource for anyone interested in language implementation.
 
 ### Learning Goals
 
-- Understanding interpreter and compiler design principles
-- Practicing language implementation concepts like:
-  - Lexical analysis (scanning)
-  - Parsing
-  - Abstract syntax trees
+- Grasp the fundamentals of interpreter and compiler design
+- Implement key language features such as:
+  - Lexical analysis and parsing
+  - Abstract Syntax Trees (AST)
   - Recursive descent parsing
-  - Runtime representation
-  - Static analysis
-  - Scope
-  - Resolving and binding
-  - Control flow
-  - Functions and closures
-  - Classes and inheritance
+  - Variable scope and environment management
+  - Control flow constructs
+  - Functions, closures, and classes with inheritance
 
 ## Additional Features
 
-Beyond the base implementation from the book, this version includes solutions to the challenges presented throughout the chapters:
+Beyond the core implementation from "Crafting Interpreters," this interpreter includes:
 
-- Break statements for loops
-- Multiline comments support
-- Additional runtime error detection
-- Improved error reporting
-- Static analysis enhancements
-- AstPrinting and Visualization
+- **Break Statements**: Allows exiting loops prematurely.
+- **Multiline Comments**: Supports more readable and maintainable code.
+- **Enhanced Error Detection**: Catches more runtime errors to aid debugging.
+- **Improved Error Reporting**: Provides clearer and more informative error messages.
+- **Static Analysis Enhancements**: Offers better compile-time checks for code correctness.
+- **AST Printing and Visualization**: Helps visualize the structure of your code for easier understanding and debugging.
 
-## Getting Started
+## Project Structure
 
-### Prerequisites
-
-- Python 3.8 or higher
-
-### Installation
-
-```bash
-git clone https://github.com/yourusername/lox-interpreter.git
-cd lox-interpreter
-```
+lox/
+├── interpreter.py    # Core interpreter implementation
+├── parser.py        # Parser for Lox grammar
+├── scanner.py       # Lexical analyzer
+├── ast_printer.py   # Debug tool for AST visualization
+├── resolver.py      # Static analysis and variable resolution
+├── environment.py   # Scope and variable environment
+└── error.py        # Error handling utilities
 
 ### Usage
 
-Run a Lox file:
-```bash
-python lox.py path/to/your/script.lox
-```
+- **Run a Lox file:**
+    ```bash
+    python lox.py path/to/your/script.lox
+    ```
 
-Start REPL (interactive mode):
-```bash
-python lox.py
-```
+- **Run a Lox file with AST visualizations:**
+    ```bash
+    python lox.py path/to/your/script.lox -ast
+    ```
+    This will generate visualizations of the AST for each statement in the `assets/images/ast/` directory.
+
+- **Start the REPL (interactive mode):**
+    ```bash
+    python lox.py
+    ```
 
 ## Language Features
 
-The interpreter supports all core Lox features including:
+The interpreter supports all core Lox features, including:
 
 - Arithmetic and logical expressions
 - Variables and assignment
@@ -69,7 +68,8 @@ The interpreter supports all core Lox features including:
 - Classes with inheritance
 - Standard library functions (print, clock)
 
-Example Lox code:
+### Example Lox Code
+
 ```lox
 // Classes and inheritance
 class Animal {
@@ -100,29 +100,6 @@ fun makeCounter() {
 var counter = makeCounter();
 counter(); // Prints: 1
 counter(); // Prints: 2
-```
-
-## Project Structure
-
-```
-lox/
-├── interpreter.py    # Core interpreter implementation
-├── parser.py        # Parser for Lox grammar
-├── scanner.py       # Lexical analyzer
-├── ast_printer.py   # Debug tool for AST visualization
-├── resolver.py      # Static analysis and variable resolution
-├── environment.py   # Scope and variable environment
-└── error.py        # Error handling utilities
-```
-
-## Limitations
-
-This is an educational project and has several limitations:
-
-- It's a tree-walk interpreter, so it's not optimized for performance
-- Error recovery is basic
-- No standard library beyond essential functions
-- Not intended for production use
 
 ## Acknowledgments
 
@@ -133,7 +110,3 @@ This is an educational project and has several limitations:
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Disclaimer
-
-This interpreter is a learning tool created by following "Crafting Interpreters" and translating its Java code to Python. It is not intended for production use and exists primarily as an educational exercise in understanding interpreter design and implementation.
