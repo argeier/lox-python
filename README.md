@@ -89,6 +89,7 @@ fun makeCounter() {
 var counter = makeCounter();
 counter(); // Prints: 1
 counter(); // Prints: 2
+```
 
 ## Acknowledgments
 
