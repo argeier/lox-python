@@ -21,23 +21,12 @@ Lox is a small, dynamically-typed language designed for educational purposes. Th
 
 Beyond the core implementation from "Crafting Interpreters," this interpreter includes:
 
-- **Break Statements**: Allows exiting loops prematurely.
-- **Multiline Comments**: Supports more readable and maintainable code.
-- **Enhanced Error Detection**: Catches more runtime errors to aid debugging.
-- **Improved Error Reporting**: Provides clearer and more informative error messages.
-- **Static Analysis Enhancements**: Offers better compile-time checks for code correctness.
-- **AST Printing and Visualization**: Helps visualize the structure of your code for easier understanding and debugging.
-
-## Project Structure
-
-lox/
-├── interpreter.py    # Core interpreter implementation
-├── parser.py        # Parser for Lox grammar
-├── scanner.py       # Lexical analyzer
-├── ast_printer.py   # Debug tool for AST visualization
-├── resolver.py      # Static analysis and variable resolution
-├── environment.py   # Scope and variable environment
-└── error.py        # Error handling utilities
+- **Break Statements**
+- **Multiline Comments**
+- **Enhanced Error Detection**
+- **Improved Error Reporting**
+- **Static Analysis Enhancements**
+- **AST Printing and Visualization**
 
 ### Usage
 
