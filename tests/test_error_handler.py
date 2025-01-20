@@ -1,19 +1,14 @@
-import os
-import sys
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
-# Append the source directory to the system path
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/../src")
-
-from error_handler import (
+from src.lox.error_handler import (
     BreakException,
     ErrorHandler,
     LoxRuntimeError,
     ParseError,
     ReturnException,
 )
-from tokens import Token, TokenType
+from src.lox.tokens import Token, TokenType
 
 
 class TestErrorHandler(unittest.TestCase):

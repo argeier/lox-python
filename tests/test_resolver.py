@@ -1,17 +1,21 @@
-import os
-import sys
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
-# Append the source directory to the system path
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/../src")
-
-from error_handler import ErrorHandler
-from expr import Assign, Binary, Call, Grouping, Literal, Logical, Unary, Variable
-from interpreter import Interpreter
-from resolver import FunctionType, Resolver, Stack
-from stmt import Block, Break, Expression, Function, If, Print, Return, Var, While
-from tokens import Token, TokenType
+from src.lox.error_handler import ErrorHandler
+from src.lox.expr import (
+    Assign,
+    Binary,
+    Call,
+    Grouping,
+    Literal,
+    Logical,
+    Unary,
+    Variable,
+)
+from src.lox.interpreter import Interpreter
+from src.lox.resolver import FunctionType, Resolver
+from src.lox.stmt import Block, Expression, Function, If, Print, Return, Var
+from src.lox.tokens import Token, TokenType
 
 
 class TestResolver(unittest.TestCase):

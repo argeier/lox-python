@@ -1,7 +1,7 @@
 import traceback
 from typing import Any, List
 
-from tokens import Token
+from .tokens import Token
 
 
 class BreakException(Exception):

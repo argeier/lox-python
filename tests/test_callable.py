@@ -1,15 +1,8 @@
-import os
-import sys
 import unittest
-from unittest.mock import Mock, patch
-
-# Append the source directory to the system path
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/../src")
-
 from time import time
 from unittest.mock import Mock
 
-from callable import ClockCallable
+from src.lox.lox_callable import ClockCallable
 
 
 class TestClockCallable(unittest.TestCase):

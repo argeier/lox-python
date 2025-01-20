@@ -2,8 +2,8 @@ from enum import Enum
 from functools import singledispatchmethod
 from typing import Dict, Generic, List, TypeVar, override
 
-from error_handler import ErrorHandler
-from expr import (
+from .error_handler import ErrorHandler
+from .expr import (
     Assign,
     Binary,
     Call,
@@ -15,10 +15,11 @@ from expr import (
     Unary,
     Variable,
 )
-from interpreter import Interpreter
-from stmt import (
+from .interpreter import Interpreter
+from .stmt import (
     Block,
     Break,
+    Class,
     Expression,
     Function,
     If,
@@ -29,7 +30,7 @@ from stmt import (
     Var,
     While,
 )
-from tokens import Token
+from .tokens import Token
 
 T = TypeVar("T")
 
@@ -75,6 +76,12 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         self._begin_scope()
         self.resolve(stmt.statements)
         self._end_scope()
+        return None
+
+    @override
+    def visit_class_stmt(self, stmt: Class) -> None:
+        self._declare(stmt.name)
+        self._define(stmt.name)
         return None
 
     @override

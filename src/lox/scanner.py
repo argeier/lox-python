@@ -1,7 +1,7 @@
 from typing import List
 
-from error_handler import ErrorHandler
-from tokens import KEYWORDS, Token, TokenType
+from .error_handler import ErrorHandler
+from .tokens import KEYWORDS, Token, TokenType
 
 
 class Scanner:

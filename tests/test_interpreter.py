@@ -1,18 +1,32 @@
-import os
-import sys
 import unittest
 from unittest.mock import Mock, patch
 
-# Append the source directory to the system path
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/../src")
-
-from callable import LoxCallable
-from environment import Environment
-from error_handler import BreakException, LoxRuntimeError, ReturnException
-from expr import Assign, Binary, Call, Grouping, Literal, Logical, Unary, Variable
-from interpreter import Interpreter
-from stmt import Block, Break, Expression, Function, If, Print, Return, Var, While
-from tokens import Token, TokenType
+from src.lox.environment import Environment
+from src.lox.error_handler import BreakException, ReturnException
+from src.lox.expr import (
+    Assign,
+    Binary,
+    Call,
+    Grouping,
+    Literal,
+    Logical,
+    Unary,
+    Variable,
+)
+from src.lox.interpreter import Interpreter
+from src.lox.lox_callable import LoxCallable
+from src.lox.stmt import (
+    Block,
+    Break,
+    Expression,
+    Function,
+    If,
+    Print,
+    Return,
+    Var,
+    While,
+)
+from src.lox.tokens import Token, TokenType
 
 
 class TestInterpreter(unittest.TestCase):
@@ -62,7 +76,9 @@ class TestInterpreter(unittest.TestCase):
         self.assertTrue(result)
 
     def test_call_expr(self):
-        with patch("callable.LoxCallable", spec=LoxCallable) as MockCallable:
+        with patch(
+            "src.lox.lox_callable.LoxCallable", spec=LoxCallable
+        ) as MockCallable:
             mock_callable = MockCallable.return_value
             mock_callable.arity.return_value = 0
             mock_callable.call.return_value = "called"
@@ -145,10 +161,10 @@ class TestInterpreter(unittest.TestCase):
         params = [Token(TokenType.IDENTIFIER, "x", None, 1)]
         body = [Mock(spec=Expression)]
         stmt = Function(name, params, body)
-        with patch("function.LoxFunction") as MockFunction:
+        with patch("src.lox.lox_function.LoxFunction") as MockFunction:
             mock_function = MockFunction.return_value
             self.interpreter.visit_function_stmt(stmt)
-            self.assertEqual(self.interpreter._environment.get(name), mock_function)
+            self.assertIs(self.interpreter._environment.get(name), mock_function)
 
     def test_return_stmt(self):
         keyword = Token(TokenType.RETURN, "return", None, 1)

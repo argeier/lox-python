@@ -1,12 +1,6 @@
-import os
-import sys
 import unittest
 
-# Append the source directory to the system path
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/../src")
-
-
-from tokens import KEYWORDS, Token, TokenType
+from src.lox.tokens import KEYWORDS, Token, TokenType
 
 
 class TestTokenType(unittest.TestCase):

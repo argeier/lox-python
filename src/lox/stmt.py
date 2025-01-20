@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Generic, List, TypeVar, override
 
-from expr import Expr
-from tokens import Token
+from .expr import Expr
+from .tokens import Token
 
 T = TypeVar("T")
 
@@ -42,6 +42,10 @@ class StmtVisitor(ABC, Generic[T]):
 
     @abstractmethod
     def visit_return_stmt(self, stmt: "Return") -> T:
+        pass
+
+    @abstractmethod
+    def visit_class_stmt(self, stmt: "Class") -> T:
         pass
 
 
@@ -86,6 +90,16 @@ class Block(Stmt):
     @override
     def accept(self, visitor: StmtVisitor[T]) -> T:
         return visitor.visit_block_stmt(self)
+
+
+class Class(Stmt):
+    def __init__(self, name: Token, methods: List["Function"]) -> None:
+        self.name: Token = name
+        self.methods: List["Function"] = methods
+
+    @override
+    def accept(self, visitor: StmtVisitor[T]) -> T:
+        return visitor.visit_class_stmt(self)
 
 
 class Function(Stmt):

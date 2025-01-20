@@ -1,14 +1,9 @@
-import os
-import sys
 import unittest
 from unittest.mock import Mock
 
-# Append the source directory to the system path
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/../src")
-
-from error_handler import ErrorHandler
-from scanner import Scanner
-from tokens import Token, TokenType
+from src.lox.error_handler import ErrorHandler
+from src.lox.scanner import Scanner
+from src.lox.tokens import Token, TokenType
 
 
 class TestScanner(unittest.TestCase):

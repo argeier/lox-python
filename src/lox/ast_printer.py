@@ -4,7 +4,7 @@ from typing import Any, List, Optional, Set, override
 
 from pygraphviz import AGraph
 
-from expr import (
+from .expr import (
     Assign,
     Binary,
     Call,
@@ -16,7 +16,7 @@ from expr import (
     Unary,
     Variable,
 )
-from stmt import (
+from .stmt import (
     Block,
     Break,
     Expression,
@@ -29,7 +29,7 @@ from stmt import (
     Var,
     While,
 )
-from tokens import Token
+from .tokens import Token
 
 
 class AstPrinter(ExprVisitor[str], StmtVisitor[str]):

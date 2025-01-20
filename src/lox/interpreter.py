@@ -1,9 +1,8 @@
-from typing import TYPE_CHECKING, Any, Dict, Final, List, cast, override
+from typing import Any, Dict, Final, List, cast, override
 
-from callable import ClockCallable, LoxCallable
-from environment import Environment
-from error_handler import BreakException, LoxRuntimeError, ReturnException
-from expr import (
+from .environment import Environment
+from .error_handler import BreakException, LoxRuntimeError, ReturnException
+from .expr import (
     Assign,
     Binary,
     Call,
@@ -15,9 +14,12 @@ from expr import (
     Unary,
     Variable,
 )
-from stmt import (
+from .lox_callable import ClockCallable, LoxCallable
+from .lox_class import LoxClass
+from .stmt import (
     Block,
     Break,
+    Class,
     Expression,
     Function,
     If,
@@ -28,10 +30,7 @@ from stmt import (
     Var,
     While,
 )
-from tokens import Token, TokenType
-
-if TYPE_CHECKING:
-    from function import LoxFunction
+from .tokens import Token, TokenType
 
 
 class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
@@ -245,6 +244,14 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
         return None
 
     @override
+    def visit_class_stmt(self, stmt: Class) -> None:
+        self._environment.define(stmt.name.lexeme, None)
+
+        klass: LoxClass = LoxClass(stmt.name.lexeme)
+        self._environment.assign(stmt.name, klass)
+        return None
+
+    @override
     def visit_if_stmt(self, stmt: "If") -> None:
         if self._is_truthy(self._evaluate(stmt.condition)):
             self._execute(stmt.then_branch)
@@ -267,7 +274,7 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
 
     @override
     def visit_function_stmt(self, stmt: Function) -> None:
-        from function import LoxFunction  # to avoid circular import
+        from .lox_function import LoxFunction  # to avoid circular import
 
         function: LoxFunction = LoxFunction(stmt, self._environment)
         self._environment.define(stmt.name.lexeme, function)

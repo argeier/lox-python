@@ -1,16 +1,15 @@
-import shutil
 import sys
-from parser import Parser
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 
-from ast_printer import AstPrinter
-from error_handler import ErrorHandler
-from interpreter import Interpreter
-from resolver import Resolver
-from scanner import Scanner
-from stmt import Stmt
-from tokens import Token
+from .ast_printer import AstPrinter
+from .error_handler import ErrorHandler
+from .interpreter import Interpreter
+from .parser import Parser
+from .resolver import Resolver
+from .scanner import Scanner
+from .stmt import Stmt
+from .tokens import Token
 
 
 def main() -> None:
@@ -43,25 +42,91 @@ def run_prompt(
     error_handler: ErrorHandler, interpreter: Interpreter, ast_enabled: bool
 ) -> None:
     """
-    Runs the Lox interpreter in REPL (Read-Eval-Print Loop) mode.
+    Runs the Lox interpreter in REPL (Read-Eval-Print Loop) mode with support for:
+    - Multi-line input for blocks and functions
+    - Input history tracking
+    - Proper error recovery
+    - Better visual formatting
 
     Args:
         error_handler (ErrorHandler): The error handler instance.
         interpreter (Interpreter): The interpreter instance.
         ast_enabled (bool): Flag indicating whether AST printing is enabled.
     """
+    current_input = []
+    open_braces = 0
+    open_parens = 0
+    in_string = False
+
+    print("Lox REPL - Type 'exit()' to quit")
+    print("Enter your code. For multi-line input, press Enter after an opening brace.")
+
     while True:
         try:
-            line = input(">>> ")
-            if not line.strip():
-                continue  # Continue REPL on empty input
-            run(line, error_handler, interpreter, ast_enabled)
-            error_handler.reset()
+            # Determine the prompt based on context
+            if not current_input:
+                prompt = ">>> "
+            else:
+                prompt = "... "
+
+            # Get input line
+            line = input(prompt)
+
+            # Handle exit command
+            if line.strip() == "exit()":
+                print("\nExiting Lox REPL.")
+                break
+
+            # Skip empty lines at the start
+            if not current_input and not line.strip():
+                continue
+
+            # Update brace/parenthesis/string counters
+            for char in line:
+                if char == '"' and not in_string:
+                    in_string = True
+                elif char == '"' and in_string:
+                    in_string = False
+                elif not in_string:
+                    if char == "{":
+                        open_braces += 1
+                    elif char == "}":
+                        open_braces = max(0, open_braces - 1)
+                    elif char == "(":
+                        open_parens += 1
+                    elif char == ")":
+                        open_parens = max(0, open_parens - 1)
+
+            # Add line to current input
+            current_input.append(line)
+
+            # If we have a complete input (all braces/parentheses matched and not in a string)
+            if not open_braces and not open_parens and not in_string:
+                # Join all lines and check if there's actual content
+                source = "\n".join(current_input).strip()
+                if source:
+                    try:
+                        run(source, error_handler, interpreter, ast_enabled)
+                    except Exception as e:
+                        error_handler.print_exception(e)
+                    finally:
+                        error_handler.reset()
+
+                # Reset for next input
+                current_input = []
+                open_braces = 0
+                open_parens = 0
+                in_string = False
+
+        except KeyboardInterrupt:
+            print("\nKeyboardInterrupt")
+            current_input = []
+            open_braces = 0
+            open_parens = 0
+            in_string = False
         except EOFError:
             print("\nExiting Lox REPL.")
             break
-        except Exception as e:
-            error_handler.print_exception(e)
 
 
 def run_file(

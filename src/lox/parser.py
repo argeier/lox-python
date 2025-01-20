@@ -1,9 +1,31 @@
 from typing import List
 
-from error_handler import ErrorHandler, ParseError
-from expr import Assign, Binary, Call, Expr, Grouping, Literal, Logical, Unary, Variable
-from stmt import Block, Break, Expression, Function, If, Print, Return, Stmt, Var, While
-from tokens import Token, TokenType
+from .error_handler import ErrorHandler, ParseError
+from .expr import (
+    Assign,
+    Binary,
+    Call,
+    Expr,
+    Grouping,
+    Literal,
+    Logical,
+    Unary,
+    Variable,
+)
+from .stmt import (
+    Block,
+    Break,
+    Class,
+    Expression,
+    Function,
+    If,
+    Print,
+    Return,
+    Stmt,
+    Var,
+    While,
+)
+from .tokens import Token, TokenType
 
 
 class Parser:
@@ -26,6 +48,8 @@ class Parser:
 
     def _declaration(self) -> Stmt | None:
         try:
+            if self._match(TokenType.CLASS):
+                return self._class_declaration()
             if self._match(TokenType.FUN):
                 return self._function("function")
             if self._match(TokenType.VAR):
@@ -34,6 +58,18 @@ class Parser:
         except ParseError:
             self._synchronize()
             return None
+
+    def _class_declaration(self) -> Class:
+        name: Token = self._consume(TokenType.IDENTIFIER, "Expect class name.")
+        self._consume(TokenType.LEFT_BRACE, "Expect '{' before class body.")
+
+        methods: List[Function] = []
+        while not self._check(TokenType.RIGHT_BRACE) and not self._is_at_end():
+            methods.append(self._function("method"))
+
+        self._consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.")
+
+        return Class(name, methods)
 
     def _var_declaration(self) -> Var:
         name: Token = self._consume(TokenType.IDENTIFIER, "Expect variable name.")

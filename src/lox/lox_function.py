@@ -1,12 +1,12 @@
 from typing import TYPE_CHECKING, Any, List, override
 
-from callable import LoxCallable
-from environment import Environment
-from error_handler import ReturnException
-from stmt import Function
+from .environment import Environment
+from .error_handler import ReturnException
+from .lox_callable import LoxCallable
+from .stmt import Function
 
 if TYPE_CHECKING:
-    from interpreter import Interpreter
+    from .interpreter import Interpreter
 
 
 class LoxFunction(LoxCallable):

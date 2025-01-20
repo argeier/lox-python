@@ -3,7 +3,7 @@ from time import time
 from typing import TYPE_CHECKING, Any, List, override
 
 if TYPE_CHECKING:
-    from interpreter import Interpreter
+    from .interpreter import Interpreter
 
 
 class LoxCallable(ABC):

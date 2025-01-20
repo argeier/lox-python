@@ -1,13 +1,8 @@
-import os
-import sys
 import unittest
 from unittest.mock import Mock
 
-# Append the source directory to the system path
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/../src")
-
-from expr import Expr
-from stmt import (
+from src.lox.expr import Expr
+from src.lox.stmt import (
     Block,
     Break,
     Expression,
@@ -19,7 +14,7 @@ from stmt import (
     Var,
     While,
 )
-from tokens import Token, TokenType
+from src.lox.tokens import Token, TokenType
 
 
 class TestStmtVisitor(StmtVisitor[None]):

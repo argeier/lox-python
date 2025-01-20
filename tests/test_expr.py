@@ -1,12 +1,7 @@
-import os
-import sys
 import unittest
 from unittest.mock import Mock, patch
 
-# Append the source directory to the system path
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/../src")
-
-from expr import (
+from src.lox.expr import (
     Assign,
     Binary,
     Call,
@@ -17,7 +12,7 @@ from expr import (
     Unary,
     Variable,
 )
-from tokens import Token, TokenType
+from src.lox.tokens import Token, TokenType  # Update this import too
 
 
 class TestExprVisitor(ExprVisitor[None]):
