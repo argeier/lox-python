@@ -14,6 +14,9 @@ from .expr import (
     Logical,
     Unary,
     Variable,
+    Get,
+    Set,
+    This,
 )
 from .interpreter import Interpreter
 from .stmt import (
@@ -38,6 +41,12 @@ T = TypeVar("T")
 class FunctionType(Enum):
     NONE = "NONE"
     FUNCTION = "FUNCTION"
+    METHOD = "METHOD"
+
+
+class ClassType(Enum):
+    NONE = "NONE"
+    CLASS = "CLASS"
 
 
 class Stack(Generic[T]):  # should just use []
@@ -70,6 +79,7 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         self._scopes: Stack[Dict[str, bool]] = Stack()
         self.error_handler: ErrorHandler = error_handler
         self.current_function: FunctionType = FunctionType.NONE
+        self.current_class: ClassType = ClassType.NONE
 
     @override
     def visit_block_stmt(self, stmt: Block) -> None:
@@ -80,8 +90,21 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
 
     @override
     def visit_class_stmt(self, stmt: Class) -> None:
+        enclosing_class: ClassType = self.current_class
+        self.current_class = ClassType
+
         self._declare(stmt.name)
         self._define(stmt.name)
+
+        self._begin_scope()
+        self._scopes.peek()["this"] = True
+
+        for method in stmt.methods:
+            declaration: FunctionType = FunctionType.METHOD
+            self._resolve_function(method, declaration)
+
+        self._end_scope()
+        self.current_class = enclosing_class
         return None
 
     @override
@@ -167,6 +190,11 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         return None
 
     @override
+    def visit_get_expr(self, expr: Get) -> None:
+        self.resolve(expr.object)
+        return None
+
+    @override
     def visit_grouping_expr(self, expr: Grouping) -> None:
         self.resolve(expr.expression)
         return None
@@ -179,6 +207,17 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
     def visit_logical_expr(self, expr: Logical) -> None:
         self.resolve(expr.left)
         self.resolve(expr.right)
+        return None
+
+    @override
+    def visit_set_expr(self, expr: Set) -> None:
+        self.resolve(expr.value)
+        self.resolve(expr.object)
+        return None
+
+    @override
+    def visit_this_expr(self, expr: "This") -> None:
+        self._resolve_local(expr, expr.keyword)
         return None
 
     @override

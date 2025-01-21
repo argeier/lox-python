@@ -40,6 +40,18 @@ class ExprVisitor(ABC, Generic[T]):
     def visit_logical_expr(self, expr: "Logical") -> T:
         pass
 
+    @abstractmethod
+    def visit_get_expr(self, expr: "Get") -> T:
+        pass
+
+    @abstractmethod
+    def visit_set_expr(self, expr: "Set") -> T:
+        pass
+
+    @abstractmethod
+    def visit_this_expr(self, expr: "This") -> T:
+        pass
+
 
 class Expr(ABC):
 
@@ -71,6 +83,16 @@ class Call(Expr):
         return visitor.visit_call_expr(self)
 
 
+class Get(Expr):
+    def __init__(self, object: Expr, name: Token) -> None:
+        self.object = object
+        self.name = name
+
+    @override
+    def accept(self, visitor: ExprVisitor[T]) -> T:
+        return visitor.visit_get_expr(self)
+
+
 class Grouping(Expr):
 
     def __init__(self, expression: Expr) -> None:
@@ -89,6 +111,26 @@ class Literal(Expr):
     @override
     def accept(self, visitor: ExprVisitor[T]) -> T:
         return visitor.visit_literal_expr(self)
+
+
+class Set(Expr):
+    def __init__(self, object: Expr, name: Token, value: Expr) -> None:
+        self.object = object
+        self.name = name
+        self.value = value
+
+    @override
+    def accept(self, visitor: ExprVisitor[T]) -> T:
+        return visitor.visit_set_expr(self)
+
+
+class This(Expr):
+    def __init__(self, keyword: Token) -> None:
+        self.keyword = keyword
+
+    @override
+    def accept(self, visitor: ExprVisitor[T]) -> T:
+        return visitor.visit_this_expr(self)
 
 
 class Unary(Expr):

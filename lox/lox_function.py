@@ -7,12 +7,18 @@ from .stmt import Function
 
 if TYPE_CHECKING:
     from .interpreter import Interpreter
+    from .lox_instance import LoxInstance
 
 
 class LoxFunction(LoxCallable):
     def __init__(self, declaration: Function, closure: Environment) -> None:
         self.closure: Environment = closure
         self.declaration: Function = declaration
+
+    def bind(self, instance: "LoxInstance") -> "LoxFunction":
+        environment: Environment = Environment(self.closure)
+        environment.define("this", instance)
+        return LoxFunction(self.declaration, environment)
 
     @override
     def call(self, interpreter: "Interpreter", arguments: List[Any]) -> Any:

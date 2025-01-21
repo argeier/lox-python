@@ -11,6 +11,9 @@ from .expr import (
     Logical,
     Unary,
     Variable,
+    Get,
+    Set,
+    This,
 )
 from .stmt import (
     Block,
@@ -226,6 +229,9 @@ class Parser:
             if isinstance(expr, Variable):
                 name: Token = expr.name
                 return Assign(name, value)
+            elif isinstance(expr, Get):
+                get: Get = expr
+                return Set(get.object, get.name, value)
 
             self.error_handler.parse_error(equals, "Invalid assignment target.")
 
@@ -310,6 +316,11 @@ class Parser:
         while True:
             if self._match(TokenType.LEFT_PAREN):
                 expr = self._finish_call(expr)
+            elif self._match(TokenType.DOT):
+                name: Token = self._consume(
+                    TokenType.IDENTIFIER, "Expect property name after '.'."
+                )
+                expr = Get(expr, name)
             else:
                 break
 
@@ -342,6 +353,9 @@ class Parser:
 
         if self._match(TokenType.NUMBER, TokenType.STRING):
             return Literal(self._previous().literal)
+
+        if self._match(TokenType.THIS):
+            return This(self._previous())
 
         if self._match(TokenType.IDENTIFIER):
             return Variable(self._previous())

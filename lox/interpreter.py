@@ -13,6 +13,9 @@ from .expr import (
     Logical,
     Unary,
     Variable,
+    Get,
+    Set,
+    This,
 )
 from .lox_callable import ClockCallable, LoxCallable
 from .lox_class import LoxClass
@@ -31,6 +34,8 @@ from .stmt import (
     While,
 )
 from .tokens import Token, TokenType
+from .lox_instance import LoxInstance
+from .lox_function import LoxFunction
 
 
 class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
@@ -200,6 +205,21 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
         return self._evaluate(expr.right)
 
     @override
+    def visit_set_expr(self, expr: "Set") -> Any:
+        obj: Any = self._evaluate(expr.object)
+
+        if not isinstance(obj, LoxInstance):
+            raise LoxRuntimeError(expr.name, "Only instances have fields.")
+
+        value: Any = self._evaluate(expr.value)
+        obj.set(expr.name, value)
+        return value
+
+    @override
+    def visit_this_expr(self, expr: "This") -> Any:
+        return self._lookup_variable(expr.keyword, expr)
+
+    @override
     def visit_call_expr(self, expr: "Call") -> Any:
         callee: Any = self._evaluate(expr.callee)
         arguements: List[Any] = []
@@ -219,6 +239,14 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
             )
 
         return function.call(self, arguements)
+
+    @override
+    def visit_get_expr(self, expr: Get) -> Any:
+        obj: Any = self._evaluate(expr.object)
+        if isinstance(obj, LoxInstance):
+            return obj.get(expr.name)
+
+        raise LoxRuntimeError(expr.name, "Only instances have properties.")
 
     @override
     def visit_expression_stmt(self, stmt: Expression) -> None:
@@ -247,7 +275,12 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
     def visit_class_stmt(self, stmt: Class) -> None:
         self._environment.define(stmt.name.lexeme, None)
 
-        klass: LoxClass = LoxClass(stmt.name.lexeme)
+        methods: Dict[str, LoxFunction] = {}
+        for method in stmt.methods:
+            function: LoxFunction = LoxFunction(method, self._environment)
+            methods[method.name.lexeme] = function
+
+        klass: LoxClass = LoxClass(stmt.name.lexeme, methods)
         self._environment.assign(stmt.name, klass)
         return None
 

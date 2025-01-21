@@ -18,10 +18,10 @@ def main() -> None:
     to determine whether to run in REPL mode or execute a script file. Additionally,
     it handles the optional AST printing functionality when the '-ast' flag is provided.
     """
-    args = sys.argv[1:]
-    error_handler = ErrorHandler()
-    interpreter = Interpreter()
-    ast_enabled = False
+    args: List[str] = sys.argv[1:]
+    error_handler: ErrorHandler = ErrorHandler()
+    interpreter: Interpreter = Interpreter()
+    ast_enabled: bool = False
 
     # Check for '-ast' flag and remove it from arguments if present
     if "-ast" in args:
@@ -53,10 +53,10 @@ def run_prompt(
         interpreter (Interpreter): The interpreter instance.
         ast_enabled (bool): Flag indicating whether AST printing is enabled.
     """
-    current_input = []
-    open_braces = 0
-    open_parens = 0
-    in_string = False
+    current_input: List[str] = []
+    open_braces: int = 0
+    open_parens: int = 0
+    in_string: bool = False
 
     print("Lox REPL - Type 'exit()' to quit")
     print("Enter your code. For multi-line input, press Enter after an opening brace.")
@@ -64,13 +64,10 @@ def run_prompt(
     while True:
         try:
             # Determine the prompt based on context
-            if not current_input:
-                prompt = ">>> "
-            else:
-                prompt = "... "
+            prompt: str = ">>> " if not current_input else "... "
 
             # Get input line
-            line = input(prompt)
+            line: str = input(prompt)
 
             # Handle exit command
             if line.strip() == "exit()":
@@ -103,7 +100,7 @@ def run_prompt(
             # If we have a complete input (all braces/parentheses matched and not in a string)
             if not open_braces and not open_parens and not in_string:
                 # Join all lines and check if there's actual content
-                source = "\n".join(current_input).strip()
+                source: str = "\n".join(current_input).strip()
                 if source:
                     try:
                         run(source, error_handler, interpreter, ast_enabled)
@@ -142,13 +139,13 @@ def run_file(
         ast_enabled (bool): Flag indicating whether AST printing is enabled.
     """
     try:
-        file_path = Path(path)
+        file_path: Path = Path(path)
 
         if not file_path.exists():
             print(f"Error: File '{file_path}' not found.")
             sys.exit(66)  # Exit code 66 for no input file
 
-        source = file_path.read_text(encoding="utf-8")
+        source: str = file_path.read_text(encoding="utf-8")
         run(source, error_handler, interpreter, ast_enabled)
 
         if error_handler.had_error:
@@ -175,9 +172,9 @@ def run(
         interpreter (Interpreter): The interpreter instance.
         ast_enabled (bool): Flag indicating whether AST printing is enabled.
     """
-    scanner = Scanner(source, error_handler)
+    scanner: Scanner = Scanner(source, error_handler)
     tokens: List[Token] = scanner.scan_tokens()
-    parser = Parser(tokens, error_handler)
+    parser: Parser = Parser(tokens, error_handler)
     statements: List[Stmt] = parser.parse()
 
     if error_handler.had_error:
@@ -185,7 +182,7 @@ def run(
         return
 
     if ast_enabled:
-        printer = AstPrinter()
+        printer: AstPrinter = AstPrinter()
         for i, statement in enumerate(statements):
             printer.create_ast(statement)
             printer.visualize_ast(i)
