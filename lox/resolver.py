@@ -9,14 +9,14 @@ from .expr import (
     Call,
     Expr,
     ExprVisitor,
+    Get,
     Grouping,
     Literal,
     Logical,
-    Unary,
-    Variable,
-    Get,
     Set,
     This,
+    Unary,
+    Variable,
 )
 from .interpreter import Interpreter
 from .stmt import (

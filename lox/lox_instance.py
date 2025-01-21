@@ -1,10 +1,11 @@
-from typing import Dict, List, Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, List
 
 if TYPE_CHECKING:
     from .lox_class import LoxClass
+
 from .error_handler import LoxRuntimeError
-from .tokens import Token
 from .lox_function import LoxFunction
+from .tokens import Token
 
 
 class LoxInstance:

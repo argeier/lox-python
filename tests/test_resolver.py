@@ -2,16 +2,7 @@ import unittest
 from unittest.mock import patch
 
 from lox.error_handler import ErrorHandler
-from lox.expr import (
-    Assign,
-    Binary,
-    Call,
-    Grouping,
-    Literal,
-    Logical,
-    Unary,
-    Variable,
-)
+from lox.expr import Assign, Binary, Call, Grouping, Literal, Logical, Unary, Variable
 from lox.interpreter import Interpreter
 from lox.resolver import FunctionType, Resolver
 from lox.stmt import Block, Expression, Function, If, Print, Return, Var

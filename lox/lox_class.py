@@ -1,11 +1,11 @@
-from typing import Dict, List, override, Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, List, override
 
 if TYPE_CHECKING:
     from .interpreter import Interpreter
 
 from .lox_callable import LoxCallable
-from .lox_instance import LoxInstance
 from .lox_function import LoxFunction
+from .lox_instance import LoxInstance
 
 
 class LoxClass(LoxCallable):

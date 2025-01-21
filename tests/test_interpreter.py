@@ -3,29 +3,10 @@ from unittest.mock import Mock, patch
 
 from lox.environment import Environment
 from lox.error_handler import BreakException, ReturnException
-from lox.expr import (
-    Assign,
-    Binary,
-    Call,
-    Grouping,
-    Literal,
-    Logical,
-    Unary,
-    Variable,
-)
+from lox.expr import Assign, Binary, Call, Grouping, Literal, Logical, Unary, Variable
 from lox.interpreter import Interpreter
 from lox.lox_callable import LoxCallable
-from lox.stmt import (
-    Block,
-    Break,
-    Expression,
-    Function,
-    If,
-    Print,
-    Return,
-    Var,
-    While,
-)
+from lox.stmt import Block, Break, Expression, Function, If, Print, Return, Var, While
 from lox.tokens import Token, TokenType
 
 

@@ -6,14 +6,14 @@ from .expr import (
     Binary,
     Call,
     Expr,
+    Get,
     Grouping,
     Literal,
     Logical,
-    Unary,
-    Variable,
-    Get,
     Set,
     This,
+    Unary,
+    Variable,
 )
 from .stmt import (
     Block,

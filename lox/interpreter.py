@@ -8,17 +8,19 @@ from .expr import (
     Call,
     Expr,
     ExprVisitor,
+    Get,
     Grouping,
     Literal,
     Logical,
-    Unary,
-    Variable,
-    Get,
     Set,
     This,
+    Unary,
+    Variable,
 )
 from .lox_callable import ClockCallable, LoxCallable
 from .lox_class import LoxClass
+from .lox_function import LoxFunction
+from .lox_instance import LoxInstance
 from .stmt import (
     Block,
     Break,
@@ -34,8 +36,6 @@ from .stmt import (
     While,
 )
 from .tokens import Token, TokenType
-from .lox_instance import LoxInstance
-from .lox_function import LoxFunction
 
 
 class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
