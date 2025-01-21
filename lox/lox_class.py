@@ -22,8 +22,12 @@ class LoxClass(LoxCallable):
     @override
     def call(self, interpreter: "Interpreter", arguments: List[Any]) -> Any:
         instance: "LoxInstance" = LoxInstance(self)
+        if initializer := self.find_method("init"):
+            initializer.bind(instance).call(interpreter, arguments)
         return instance
 
     @override
     def arity(self) -> int:
+        if initializer := self.find_method("init"):
+            return initializer.arity()
         return 0

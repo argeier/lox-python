@@ -41,6 +41,7 @@ T = TypeVar("T")
 class FunctionType(Enum):
     NONE = "NONE"
     FUNCTION = "FUNCTION"
+    INITIALIZER = "INITIALIZER"
     METHOD = "METHOD"
 
 
@@ -101,6 +102,8 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
 
         for method in stmt.methods:
             declaration: FunctionType = FunctionType.METHOD
+            if method.name.lexeme == "init":
+                declaration = FunctionType.INITIALIZER
             self._resolve_function(method, declaration)
 
         self._end_scope()
@@ -137,6 +140,10 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         if self.current_function is FunctionType.NONE:
             self.error_handler.error(stmt.keyword, "Cannot return from top-level code.")
         if stmt.value is not None:
+            if self.current_function is FunctionType.INITIALIZER:
+                self.error_handler.error(
+                    stmt.keyword, "Cannot return a value from an initializer."
+                )
             self.resolve(stmt.value)
         return None
 
@@ -217,6 +224,11 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
 
     @override
     def visit_this_expr(self, expr: "This") -> None:
+        if self.current_class is ClassType.NONE:
+            self.error_handler.error(
+                expr.keyword, "Cannot use 'this' outside of a class."
+            )
+            return None
         self._resolve_local(expr, expr.keyword)
         return None
 

@@ -277,7 +277,9 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
 
         methods: Dict[str, LoxFunction] = {}
         for method in stmt.methods:
-            function: LoxFunction = LoxFunction(method, self._environment)
+            function: LoxFunction = LoxFunction(
+                method, self._environment, method.name.lexeme == "init"
+            )
             methods[method.name.lexeme] = function
 
         klass: LoxClass = LoxClass(stmt.name.lexeme, methods)
@@ -309,7 +311,7 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
     def visit_function_stmt(self, stmt: Function) -> None:
         from .lox_function import LoxFunction  # to avoid circular import
 
-        function: LoxFunction = LoxFunction(stmt, self._environment)
+        function: LoxFunction = LoxFunction(stmt, self._environment, False)
         self._environment.define(stmt.name.lexeme, function)
         return None
 
