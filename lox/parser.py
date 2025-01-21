@@ -68,7 +68,10 @@ class Parser:
 
         methods: List[Function] = []
         while not self._check(TokenType.RIGHT_BRACE) and not self._is_at_end():
-            methods.append(self._function("method"))
+            is_class_method = self._match(TokenType.CLASS)
+            method = self._function("method")
+            method.is_class_method = is_class_method
+            methods.append(method)
 
         self._consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.")
 
