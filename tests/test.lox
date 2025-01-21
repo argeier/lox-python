@@ -86,12 +86,3 @@ class Cake {
 var cake = Cake();
 cake.flavor = "German chocolate";
 cake.taste(); // Now this will work
-
-
-class Math {
-  class square(n) {
-    return n * n;
-  }
-}
-
-print Math.square(3); // Prints "9"

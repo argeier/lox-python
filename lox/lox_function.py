@@ -12,23 +12,16 @@ if TYPE_CHECKING:
 
 class LoxFunction(LoxCallable):
     def __init__(
-        self,
-        declaration: Function,
-        closure: Environment,
-        is_initializer: bool,
-        is_class_method: bool = False,
+        self, declaration: Function, closure: Environment, is_initializer: bool
     ) -> None:
         self.closure: Environment = closure
         self.declaration: Function = declaration
         self.is_initializer: bool = is_initializer
-        self.is_class_method: bool = is_class_method
 
     def bind(self, instance: "LoxInstance") -> "LoxFunction":
         environment: Environment = Environment(self.closure)
         environment.define("this", instance)
-        return LoxFunction(
-            self.declaration, environment, self.is_initializer, self.is_class_method
-        )
+        return LoxFunction(self.declaration, environment, self.is_initializer)
 
     @override
     def call(self, interpreter: "Interpreter", arguments: List[Any]) -> Any:
