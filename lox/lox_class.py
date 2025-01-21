@@ -8,8 +8,11 @@ from .lox_function import LoxFunction
 from .lox_instance import LoxInstance
 
 
-class LoxClass(LoxCallable):
-    def __init__(self, name: str, methods: Dict[str, LoxFunction]) -> None:
+class LoxClass(LoxCallable, LoxInstance):
+    def __init__(
+        self, metaclass: "LoxClass", name: str, methods: Dict[str, LoxFunction]
+    ) -> None:
+        super().__init__(metaclass)
         self.name = name
         self.methods = methods
 

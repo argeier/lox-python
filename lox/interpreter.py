@@ -244,6 +244,9 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
     def visit_get_expr(self, expr: Get) -> Any:
         obj: Any = self._evaluate(expr.object)
         if isinstance(obj, LoxInstance):
+            result = obj.get(expr.name)
+            if isinstance(result, LoxFunction) and result.is_getter():
+                return result.call(self, [])
             return obj.get(expr.name)
 
         raise LoxRuntimeError(expr.name, "Only instances have properties.")
@@ -275,6 +278,16 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
     def visit_class_stmt(self, stmt: Class) -> None:
         self._environment.define(stmt.name.lexeme, None)
 
+        class_methods: Dict[str, LoxFunction] = {}
+
+        for method in stmt.class_methods:
+            function: LoxFunction = LoxFunction(method, self._environment, False)
+            class_methods[method.name.lexeme] = function
+
+        metaclass: LoxClass = LoxClass(
+            None, stmt.name.lexeme + " metaclass", class_methods
+        )
+
         methods: Dict[str, LoxFunction] = {}
         for method in stmt.methods:
             function: LoxFunction = LoxFunction(
@@ -282,7 +295,7 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
             )
             methods[method.name.lexeme] = function
 
-        klass: LoxClass = LoxClass(stmt.name.lexeme, methods)
+        klass: LoxClass = LoxClass(metaclass, stmt.name.lexeme, methods)
         self._environment.assign(stmt.name, klass)
         return None
 

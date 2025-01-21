@@ -93,9 +93,12 @@ class Block(Stmt):
 
 
 class Class(Stmt):
-    def __init__(self, name: Token, methods: List["Function"]) -> None:
+    def __init__(
+        self, name: Token, methods: List["Function"], class_methods: List["Function"]
+    ) -> None:
         self.name: Token = name
         self.methods: List["Function"] = methods
+        self.class_methods: List["Function"] = class_methods
 
     @override
     def accept(self, visitor: StmtVisitor[T]) -> T:

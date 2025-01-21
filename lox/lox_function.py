@@ -23,12 +23,15 @@ class LoxFunction(LoxCallable):
         environment.define("this", instance)
         return LoxFunction(self.declaration, environment, self.is_initializer)
 
+    def is_getter(self) -> bool:
+        return self.declaration.params is None
+
     @override
     def call(self, interpreter: "Interpreter", arguments: List[Any]) -> Any:
         environment: Environment = Environment(self.closure)
-
-        for i in range(len(self.declaration.params)):
-            environment.define(self.declaration.params[i].lexeme, arguments[i])
+        if self.declaration.params:
+            for i in range(len(self.declaration.params)):
+                environment.define(self.declaration.params[i].lexeme, arguments[i])
 
         try:
             interpreter._execute_block(self.declaration.body, environment)

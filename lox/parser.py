@@ -64,15 +64,21 @@ class Parser:
 
     def _class_declaration(self) -> Class:
         name: Token = self._consume(TokenType.IDENTIFIER, "Expect class name.")
-        self._consume(TokenType.LEFT_BRACE, "Expect '{' before class body.")
 
         methods: List[Function] = []
+        class_methods: List[Function] = []
+
+        self._consume(TokenType.LEFT_BRACE, "Expect '{' before class body.")
+
         while not self._check(TokenType.RIGHT_BRACE) and not self._is_at_end():
-            methods.append(self._function("method"))
+            is_class_method: bool = self._match(TokenType.CLASS)
+            (class_methods if is_class_method else methods).append(
+                self._function("method")
+            )
 
         self._consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.")
 
-        return Class(name, methods)
+        return Class(name, methods, class_methods)
 
     def _var_declaration(self) -> Var:
         name: Token = self._consume(TokenType.IDENTIFIER, "Expect variable name.")
@@ -194,26 +200,32 @@ class Parser:
         self._consume(TokenType.SEMICOLON, "Expect ';' after return value.")
         return Return(keyword, value)
 
-    def _function(self, kind: str) -> Stmt:
+    def _function(self, kind: str) -> Function:
+        """Parse a function declaration and return a Function statement node."""
         name: Token = self._consume(TokenType.IDENTIFIER, f"Expect {kind} name.")
-        self._consume(TokenType.LEFT_PAREN, f"Expect '(' after {kind} name.")
-        parameters: List[Token] = []
+        parameters: List[Token] | None = None
 
-        if not self._check(TokenType.RIGHT_PAREN):
-            while True:
-                if len(parameters) >= 255:
-                    self.error_handler.parse_error(
-                        self._peek(), "Cannot have more than 255 parameters."
+        if kind != "method" or self._check(TokenType.LEFT_PAREN):
+            self._consume(TokenType.LEFT_PAREN, f"Expect '(' after {kind} name.")
+            parameters = []
+
+            if not self._check(TokenType.RIGHT_PAREN):
+                while True:
+                    if len(parameters) >= 255:
+                        self.error(self._peek(), "Can't have more than 255 parameters.")
+
+                    parameters.append(
+                        self._consume(TokenType.IDENTIFIER, "Expect parameter name.")
                     )
-                parameters.append(
-                    self._consume(TokenType.IDENTIFIER, "Expect parameter name.")
-                )
-                if not self._match(TokenType.COMMA):
-                    break
 
-        self._consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.")
+                    if not self._match(TokenType.COMMA):
+                        break
+
+            self._consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.")
+
         self._consume(TokenType.LEFT_BRACE, f"Expect '{{' before {kind} body.")
         body: List[Stmt] = self._block()
+
         return Function(name, parameters, body)
 
     def _expression(self) -> Expr:

@@ -106,6 +106,12 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
                 declaration = FunctionType.INITIALIZER
             self._resolve_function(method, declaration)
 
+        for method in stmt.class_methods:
+            self._begin_scope()
+            self._scopes.peek()["this"] = True
+            self._resolve_function(method, FunctionType.METHOD)
+            self._end_scope()
+
         self._end_scope()
         self.current_class = enclosing_class
         return None
@@ -288,9 +294,10 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         enclosing_function: FunctionType = self.current_function
         self.current_function = type
         self._begin_scope()
-        for param in function.params:
-            self._declare(param)
-            self._define(param)
+        if function.params:
+            for param in function.params:
+                self._declare(param)
+                self._define(param)
         self.resolve(function.body)
         self._end_scope()
         self.current_function = enclosing_function
