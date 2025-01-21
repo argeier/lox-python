@@ -2,7 +2,7 @@ import unittest
 from time import time
 from unittest.mock import Mock
 
-from src.lox.lox_callable import ClockCallable
+from lox.lox_callable import ClockCallable
 
 
 class TestClockCallable(unittest.TestCase):

@@ -1,6 +1,6 @@
 import unittest
 
-from src.lox.tokens import KEYWORDS, Token, TokenType
+from lox.tokens import KEYWORDS, Token, TokenType
 
 
 class TestTokenType(unittest.TestCase):

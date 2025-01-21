@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock, patch
 
-from src.lox.expr import (
+from lox.expr import (
     Assign,
     Binary,
     Call,
@@ -12,7 +12,7 @@ from src.lox.expr import (
     Unary,
     Variable,
 )
-from src.lox.tokens import Token, TokenType  # Update this import too
+from lox.tokens import Token, TokenType  # Update this import too
 
 
 class TestExprVisitor(ExprVisitor[None]):

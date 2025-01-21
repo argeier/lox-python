@@ -1,14 +1,14 @@
 import unittest
 from unittest.mock import patch
 
-from src.lox.error_handler import (
+from lox.error_handler import (
     BreakException,
     ErrorHandler,
     LoxRuntimeError,
     ParseError,
     ReturnException,
 )
-from src.lox.tokens import Token, TokenType
+from lox.tokens import Token, TokenType
 
 
 class TestErrorHandler(unittest.TestCase):

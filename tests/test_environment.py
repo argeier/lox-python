@@ -1,8 +1,8 @@
 import unittest
 
-from src.lox.environment import Environment
-from src.lox.error_handler import LoxRuntimeError
-from src.lox.tokens import Token, TokenType
+from lox.environment import Environment
+from lox.error_handler import LoxRuntimeError
+from lox.tokens import Token, TokenType
 
 
 class TestEnvironment(unittest.TestCase):

@@ -1,8 +1,8 @@
 import unittest
 from unittest.mock import patch
 
-from src.lox.error_handler import ErrorHandler
-from src.lox.expr import (
+from lox.error_handler import ErrorHandler
+from lox.expr import (
     Assign,
     Binary,
     Call,
@@ -12,10 +12,10 @@ from src.lox.expr import (
     Unary,
     Variable,
 )
-from src.lox.interpreter import Interpreter
-from src.lox.resolver import FunctionType, Resolver
-from src.lox.stmt import Block, Expression, Function, If, Print, Return, Var
-from src.lox.tokens import Token, TokenType
+from lox.interpreter import Interpreter
+from lox.resolver import FunctionType, Resolver
+from lox.stmt import Block, Expression, Function, If, Print, Return, Var
+from lox.tokens import Token, TokenType
 
 
 class TestResolver(unittest.TestCase):

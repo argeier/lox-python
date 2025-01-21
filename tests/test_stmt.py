@@ -1,8 +1,8 @@
 import unittest
 from unittest.mock import Mock
 
-from src.lox.expr import Expr
-from src.lox.stmt import (
+from lox.expr import Expr
+from lox.stmt import (
     Block,
     Break,
     Expression,
@@ -14,7 +14,7 @@ from src.lox.stmt import (
     Var,
     While,
 )
-from src.lox.tokens import Token, TokenType
+from lox.tokens import Token, TokenType
 
 
 class TestStmtVisitor(StmtVisitor[None]):

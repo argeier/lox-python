@@ -1,9 +1,9 @@
 import unittest
 from unittest.mock import Mock
 
-from src.lox.error_handler import ErrorHandler
-from src.lox.scanner import Scanner
-from src.lox.tokens import TokenType
+from lox.error_handler import ErrorHandler
+from lox.scanner import Scanner
+from lox.tokens import TokenType
 
 
 class TestScanner(unittest.TestCase):
