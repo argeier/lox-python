@@ -1,0 +1,21 @@
+trait Swimmable {
+    swim() {
+        print this.name + " is swimming";
+    }
+}
+
+trait Flyable {
+    fly() {
+        print this.name + " is flying";
+    }
+}
+
+class Duck with Swimmable, Flyable {
+    init(name) {
+        this.name = name;
+    }
+}
+
+var duck = Duck("Donald");
+duck.swim(); // Donald is swimming
+duck.fly();  // Donald is flying

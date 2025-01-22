@@ -297,11 +297,8 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
             self.error_handler.error(
                 expr.keyword, "Can't use 'super' outside of a class."
             )
-
-        elif self.current_class is not ClassType.TRAIT:
-            self.error_handler.error(
-                expr.keyword, "Can't use 'super' in a class with no superclass."
-            )
+        elif self.current_class is ClassType.TRAIT:
+            self.error_handler.error(expr.keyword, "Can't use 'super' in a trait.")
         elif self.current_class is not ClassType.SUBCLASS:
             self.error_handler.error(
                 expr.keyword, "Can't use 'super' in a class with no superclass."

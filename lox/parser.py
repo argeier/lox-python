@@ -70,9 +70,6 @@ class Parser:
     def _class_declaration(self) -> Class:
         name: Token = self._consume(TokenType.IDENTIFIER, "Expect class name.")
 
-        methods: List[Function] = []
-        class_methods: List[Function] = []
-
         superclass: Variable | None = None
         if self._match(TokenType.LESS):
             self._consume(TokenType.IDENTIFIER, "Expect superclass name.")
@@ -81,6 +78,9 @@ class Parser:
         traits: List[Expr] = self._with_clause()
 
         self._consume(TokenType.LEFT_BRACE, "Expect '{' before class body.")
+
+        methods: List[Function] = []
+        class_methods: List[Function] = []
 
         while not self._check(TokenType.RIGHT_BRACE) and not self._is_at_end():
             is_class_method: bool = self._match(TokenType.CLASS)

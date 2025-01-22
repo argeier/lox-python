@@ -1,0 +1,24 @@
+// Mathematical functions
+print sqrt(16);    // 4
+print abs(-5);     // 5
+print floor(3.7);  // 3
+print ceil(3.2);   // 4
+print min(5, 3);   // 3
+print max(5, 3);   // 5
+
+// Trigonometric functions
+print sin(3.14159);
+print cos(0);
+print tanh(1);
+
+// Random numbers
+print random();           // Random number between 0 and 1
+print randomrange(1, 6);  // Random number between 1 and 6
+
+// Arrays
+var arr = Array(3);
+arr.set(0, "first");
+arr.set(1, "second");
+arr.set(2, "third");
+print arr.get(0);   // first
+print arr.length;   // 3

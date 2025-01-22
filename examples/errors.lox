@@ -1,0 +1,19 @@
+fun divideNumbers(a, b) {
+    if (b == 0) {
+        print "Cannot divide by zero";
+        return nil;
+    }
+    return a / b;
+}
+
+print divideNumbers(10, 2);  // 5
+print divideNumbers(10, 0);  // Cannot divide by zero
+
+// Undefined variable handling
+fun testUndefined() {
+    var a = 1;
+    if (a > 0) {
+        var b = 2;
+    }
+    // This would cause an error: print b;
+}

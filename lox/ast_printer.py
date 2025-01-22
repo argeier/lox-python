@@ -19,6 +19,7 @@ from .expr import (
     Grouping,
     Literal,
     Logical,
+    Conditional,
 )
 from .expr import Set as ExprSet  # Renamed to avoid conflict with built-in set
 from .expr import Super, This, Unary, Variable
@@ -35,6 +36,7 @@ from .stmt import (
     StmtVisitor,
     Var,
     While,
+    Trait,
 )
 from .tokens import Token
 
@@ -337,6 +339,12 @@ class AstPrinter(ExprVisitor[str], StmtVisitor[str]):
         """Visit an assign expression node."""
         return self._parenthesize("=", expr.name.lexeme, expr.value)
 
+    def visit_conditional_expr(self, expr: Conditional) -> str:
+        """Visit a conditional (ternary) expression node."""
+        return self._parenthesize(
+            "?:", expr.condition, expr.then_branch, expr.else_branch
+        )
+
     # Statement visitor methods
     def visit_expression_stmt(self, stmt: Expression) -> str:
         """Visit an expression statement node."""
@@ -381,6 +389,18 @@ class AstPrinter(ExprVisitor[str], StmtVisitor[str]):
     def visit_return_stmt(self, stmt: Return) -> str:
         """Visit a return statement node."""
         return self._parenthesize("return", stmt.value) if stmt.value else "(return)"
+
+    def visit_trait_stmt(self, stmt: Trait) -> str:
+        """Visit a trait statement node."""
+        parts = ["trait", stmt.name.lexeme]
+
+        if stmt.traits:
+            parts.extend(["with"] + [str(trait.accept(self)) for trait in stmt.traits])
+
+        for method in stmt.methods:
+            parts.append(self.visit_function_stmt(method))
+
+        return self._parenthesize(*parts)
 
     def visit_class_stmt(self, stmt: Class) -> str:
         """Visit a class statement node."""

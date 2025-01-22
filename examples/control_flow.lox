@@ -1,0 +1,28 @@
+var count = 1;
+
+// If statement
+if (count > 0) {
+    print "Count is positive";
+} else {
+    print "Count is not positive";
+}
+
+// While loop
+while (count <= 3) {
+    print "while count: " + count;
+    count = count + 1;
+}
+
+// For loop
+for (var i = 1; i <= 3; i = i + 1) {
+    print "for i:" + i;
+}
+
+
+while (true) {
+    if (count > 5) break;
+    
+    print "while count: " + count;
+    count = count + 1;
+
+}

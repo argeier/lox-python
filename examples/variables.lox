@@ -1,0 +1,8 @@
+var a = 1;          // Number
+var b = "hello";    // String
+var c = true;       // Boolean
+var d = nil;        // Nil value
+print a;
+print b;
+print c;
+print d;

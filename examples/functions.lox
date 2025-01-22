@@ -1,0 +1,24 @@
+fun add(a, b) {
+    return a + b;
+}
+
+fun greet(name) {
+    print "Hello, " + name + "!";
+}
+
+print add(5, 3);
+greet("World");
+
+// Function with closure
+fun makeCounter() {
+    var i = 0;
+    fun count() {
+        i = i + 1;
+        return i;
+    }
+    return count;
+}
+
+var counter = makeCounter();
+print counter(); // 1
+print counter(); // 2
