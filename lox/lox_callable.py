@@ -1,17 +1,17 @@
 from __future__ import annotations
 
+from math import cos, exp, log, sin, sqrt, tanh
+from random import uniform
 from time import time
 from typing import TYPE_CHECKING, Any, List, override
-from random import uniform
-from math import exp, log, sqrt, tanh, sin, cos
 
 if TYPE_CHECKING:
     from .interpreter import Interpreter
     from .lox_array import LoxArray
 
 from .callable import LoxCallable
-from .tokens import Token, TokenType
 from .error_handler import LoxRuntimeError
+from .tokens import Token, TokenType
 
 
 class ClockCallable(LoxCallable):
