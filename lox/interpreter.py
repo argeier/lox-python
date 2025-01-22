@@ -21,7 +21,25 @@ from .expr import (
     Unary,
     Variable,
 )
-from .lox_callable import ArrayCallable, ClockCallable, LoxCallable
+from .lox_callable import (
+    ArrayCallable,
+    ClockCallable,
+    LoxCallable,
+    MaxCallable,
+    MinCallable,
+    RandomRangeCallable,
+    SumCallable,
+    AbsCallable,
+    RandomCallable,
+    ExpCallable,
+    LogCallable,
+    SqrtCallable,
+    FloorCallable,
+    CeilCallable,
+    SinCallable,
+    CosCallable,
+    TanhCallable,
+)
 from .lox_class import LoxClass
 from .lox_function import LoxFunction
 from .lox_instance import LoxInstance
@@ -56,6 +74,20 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
 
         self.globals.define("clock", ClockCallable())
         self.globals.define("Array", ArrayCallable())
+        self.globals.define("max", MaxCallable())
+        self.globals.define("min", MinCallable())
+        self.globals.define("sum", SumCallable())
+        self.globals.define("randomrange", RandomRangeCallable())
+        self.globals.define("abs", AbsCallable())
+        self.globals.define("random", RandomCallable())
+        self.globals.define("exp", ExpCallable())
+        self.globals.define("log", LogCallable())
+        self.globals.define("sqrt", SqrtCallable())
+        self.globals.define("floor", FloorCallable())
+        self.globals.define("ceil", CeilCallable())
+        self.globals.define("sin", SinCallable())
+        self.globals.define("cos", CosCallable())
+        self.globals.define("tanh", TanhCallable())
 
     def _evaluate(self, expr: Expr | None) -> Any:
         if expr is None:

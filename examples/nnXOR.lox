@@ -1,0 +1,197 @@
+// Neural Network Implementation for XOR Problem in Lox
+
+class NeuralNetwork {
+  init() {
+    this.inputSize = 2;
+    this.hiddenSize = 4;
+    this.outputSize = 1;
+    this.learningRate = 0.25;
+
+    // Xavier/Glorot initialization for better starting weights
+    var inputScale = sqrt(2.0 / this.inputSize);
+    var hiddenScale = sqrt(2.0 / this.hiddenSize);
+
+    // Initialize input to hidden weights
+    this.weightsInputHidden = Array(this.hiddenSize);
+    for (var i = 0; i < this.hiddenSize; i = i + 1) {
+      var hiddenWeights = Array(this.inputSize);
+      for (var j = 0; j < this.inputSize; j = j + 1) {
+        hiddenWeights.set(j, this.randomrange(-inputScale, inputScale));
+      }
+      this.weightsInputHidden.set(i, hiddenWeights);
+    }
+
+    // Initialize hidden to output weights
+    this.weightsHiddenOutput = Array(this.outputSize);
+    for (var i = 0; i < this.outputSize; i = i + 1) {
+      var outputWeights = Array(this.hiddenSize);
+      for (var j = 0; j < this.hiddenSize; j = j + 1) {
+        outputWeights.set(j, this.randomrange(-hiddenScale, hiddenScale));
+      }
+      this.weightsHiddenOutput.set(i, outputWeights);
+    }
+
+    // Initialize biases to 0
+    this.biasHidden = Array(this.hiddenSize);
+    for (var i = 0; i < this.hiddenSize; i = i + 1) {
+      this.biasHidden.set(i, 0);
+    }
+
+    this.biasOutput = Array(this.outputSize);
+    for (var i = 0; i < this.outputSize; i = i + 1) {
+      this.biasOutput.set(i, 0);
+    }
+  }
+
+  randomrange(min, max) {
+    return min + (max - min) * random();
+  }
+
+  sigmoid(x) {
+    return 1.0 / (1.0 + exp(-x));
+  }
+
+  sigmoidDerivative(x) {
+    var s = this.sigmoid(x);
+    return s * (1.0 - s);
+  }
+
+  forward(inputs) {
+    // Hidden layer
+    this.hiddenInputs = Array(this.hiddenSize);
+    this.hiddenOutputs = Array(this.hiddenSize);
+    
+    for (var i = 0; i < this.hiddenSize; i = i + 1) {
+      var sum = this.biasHidden.get(i);
+      for (var j = 0; j < this.inputSize; j = j + 1) {
+        sum = sum + inputs.get(j) * this.weightsInputHidden.get(i).get(j);
+      }
+      this.hiddenInputs.set(i, sum);
+      this.hiddenOutputs.set(i, this.sigmoid(sum));
+    }
+
+    // Output layer
+    this.outputInput = this.biasOutput.get(0);
+    for (var i = 0; i < this.hiddenSize; i = i + 1) {
+      this.outputInput = this.outputInput + 
+        this.hiddenOutputs.get(i) * this.weightsHiddenOutput.get(0).get(i);
+    }
+    this.output = this.sigmoid(this.outputInput);
+
+    return this.output;
+  }
+
+  train(inputs, target) {
+    // Forward pass
+    var prediction = this.forward(inputs);
+    
+    // Compute gradients for output layer
+    var outputError = target - prediction; // Error is now target - prediction
+    var outputDelta = outputError * this.sigmoidDerivative(this.outputInput);
+    
+    // Compute gradients for hidden layer
+    var hiddenDeltas = Array(this.hiddenSize);
+    for (var i = 0; i < this.hiddenSize; i = i + 1) {
+      var hiddenError = outputDelta * this.weightsHiddenOutput.get(0).get(i);
+      hiddenDeltas.set(i, hiddenError * this.sigmoidDerivative(this.hiddenInputs.get(i)));
+    }
+    
+    // Update hidden to output weights
+    for (var i = 0; i < this.hiddenSize; i = i + 1) {
+      var oldWeight = this.weightsHiddenOutput.get(0).get(i);
+      var adjustment = this.learningRate * outputDelta * this.hiddenOutputs.get(i);
+      this.weightsHiddenOutput.get(0).set(i, oldWeight + adjustment);
+    }
+    
+    // Update input to hidden weights
+    for (var i = 0; i < this.hiddenSize; i = i + 1) {
+      for (var j = 0; j < this.inputSize; j = j + 1) {
+        var oldWeight = this.weightsInputHidden.get(i).get(j);
+        var adjustment = this.learningRate * hiddenDeltas.get(i) * inputs.get(j);
+        this.weightsInputHidden.get(i).set(j, oldWeight + adjustment);
+      }
+    }
+    
+    // Update biases
+    this.biasOutput.set(0, this.biasOutput.get(0) + this.learningRate * outputDelta);
+    for (var i = 0; i < this.hiddenSize; i = i + 1) {
+      this.biasHidden.set(i, this.biasHidden.get(i) + this.learningRate * hiddenDeltas.get(i));
+    }
+
+    return 0.5 * outputError * outputError; // Return MSE
+  }
+
+  trainEpoch() {
+    var totalError = 0;
+
+    var input00 = Array(this.inputSize);
+    input00.set(0, 0);
+    input00.set(1, 0);
+    totalError = totalError + this.train(input00, 0);
+
+    var input01 = Array(this.inputSize);
+    input01.set(0, 0);
+    input01.set(1, 1);
+    totalError = totalError + this.train(input01, 1);
+
+    var input10 = Array(this.inputSize);
+    input10.set(0, 1);
+    input10.set(1, 0);
+    totalError = totalError + this.train(input10, 1);
+
+    var input11 = Array(this.inputSize);
+    input11.set(0, 1);
+    input11.set(1, 1);
+    totalError = totalError + this.train(input11, 0);
+
+    return totalError;
+  }
+}
+
+// Create network
+var nn = NeuralNetwork();
+
+// Training parameters
+var epoch = 0;
+var nextPrint = 0;
+var maxEpochs = 10000;
+var errorThreshold = 0.001;
+
+// Training loop
+while (epoch < maxEpochs) {
+  var error = nn.trainEpoch();
+  
+  if (epoch == nextPrint) {
+    print "Epoch " + epoch + " Error: " + error;
+    nextPrint = nextPrint + 500;
+  }
+
+  if (error < errorThreshold) {
+    print "Converged at epoch " + epoch + " with error " + error;
+    break;
+  }
+
+  epoch = epoch + 1;
+}
+
+print "Final results:";
+
+var finalInput00 = Array(2);
+finalInput00.set(0, 0);
+finalInput00.set(1, 0);
+print "0 XOR 0 = " + nn.forward(finalInput00);
+
+var finalInput01 = Array(2);
+finalInput01.set(0, 0);
+finalInput01.set(1, 1);
+print "0 XOR 1 = " + nn.forward(finalInput01);
+
+var finalInput10 = Array(2);
+finalInput10.set(0, 1);
+finalInput10.set(1, 0);
+print "1 XOR 0 = " + nn.forward(finalInput10);
+
+var finalInput11 = Array(2);
+finalInput11.set(0, 1);
+finalInput11.set(1, 1);
+print "1 XOR 1 = " + nn.forward(finalInput11);

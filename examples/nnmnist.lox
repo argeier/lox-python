@@ -1,0 +1,266 @@
+// Neural Network for 5x5 Digit Recognition
+
+class NeuralNetwork {
+  init() {
+    // Network structure: 25 inputs (5x5 grid), 15 hidden neurons, 10 outputs (digits 0-9)
+    this.inputSize = 25;
+    this.hiddenSize = 15;
+    this.outputSize = 10;
+    this.learningRate = 0.15;
+
+    // Xavier/Glorot initialization
+    var inputScale = sqrt(2.0 / this.inputSize);
+    var hiddenScale = sqrt(2.0 / this.hiddenSize);
+
+    // Initialize input to hidden weights
+    this.weightsInputHidden = Array(this.hiddenSize);
+    for (var i = 0; i < this.hiddenSize; i = i + 1) {
+      var hiddenWeights = Array(this.inputSize);
+      for (var j = 0; j < this.inputSize; j = j + 1) {
+        hiddenWeights.set(j, this.randomrange(-inputScale, inputScale));
+      }
+      this.weightsInputHidden.set(i, hiddenWeights);
+    }
+
+    // Initialize hidden to output weights
+    this.weightsHiddenOutput = Array(this.outputSize);
+    for (var i = 0; i < this.outputSize; i = i + 1) {
+      var outputWeights = Array(this.hiddenSize);
+      for (var j = 0; j < this.hiddenSize; j = j + 1) {
+        outputWeights.set(j, this.randomrange(-hiddenScale, hiddenScale));
+      }
+      this.weightsHiddenOutput.set(i, outputWeights);
+    }
+
+    // Initialize biases to 0
+    this.biasHidden = Array(this.hiddenSize);
+    for (var i = 0; i < this.hiddenSize; i = i + 1) {
+      this.biasHidden.set(i, 0);
+    }
+
+    this.biasOutput = Array(this.outputSize);
+    for (var i = 0; i < this.outputSize; i = i + 1) {
+      this.biasOutput.set(i, 0);
+    }
+  }
+
+  randomrange(min, max) {
+    return min + (max - min) * random();
+  }
+
+  activate(x) {
+    return tanh(x);
+  }
+
+  activateDerivative(x) {
+    var t = tanh(x);
+    return 1.0 - (t * t);
+  }
+
+  clamp(x, minVal, maxVal) {
+    return min(max(x, minVal), maxVal);
+  }
+
+  forward(inputs) {
+    // Hidden layer
+    this.hiddenInputs = Array(this.hiddenSize);
+    this.hiddenOutputs = Array(this.hiddenSize);
+    
+    for (var i = 0; i < this.hiddenSize; i = i + 1) {
+      var sum = this.biasHidden.get(i);
+      for (var j = 0; j < this.inputSize; j = j + 1) {
+        sum = sum + inputs.get(j) * this.weightsInputHidden.get(i).get(j);
+      }
+      sum = this.clamp(sum, -10.0, 10.0);
+      this.hiddenInputs.set(i, sum);
+      this.hiddenOutputs.set(i, this.activate(sum));
+    }
+
+    // Output layer
+    this.outputInputs = Array(this.outputSize);
+    this.outputs = Array(this.outputSize);
+    
+    for (var i = 0; i < this.outputSize; i = i + 1) {
+      var sum = this.biasOutput.get(i);
+      for (var j = 0; j < this.hiddenSize; j = j + 1) {
+        sum = sum + this.hiddenOutputs.get(j) * this.weightsHiddenOutput.get(i).get(j);
+      }
+      this.outputInputs.set(i, this.clamp(sum, -10.0, 10.0));
+      this.outputs.set(i, this.activate(sum));
+    }
+
+    return this.outputs;
+  }
+
+  train(inputs, targetDigit) {
+    // Forward pass
+    var predictions = this.forward(inputs);
+    
+    // Create one-hot target vector
+    var targets = Array(this.outputSize);
+    for (var i = 0; i < this.outputSize; i = i + 1) {
+      if (i == targetDigit) {
+        targets.set(i, 1);
+      } else {
+        targets.set(i, -1);  // -1 for tanh
+      }
+    }
+
+    // Output layer deltas
+    var outputDeltas = Array(this.outputSize);
+    for (var i = 0; i < this.outputSize; i = i + 1) {
+      outputDeltas.set(i, (targets.get(i) - predictions.get(i)) * 
+                         this.activateDerivative(this.outputInputs.get(i)));
+    }
+
+    // Hidden layer deltas
+    var hiddenDeltas = Array(this.hiddenSize);
+    for (var i = 0; i < this.hiddenSize; i = i + 1) {
+      var sum = 0;
+      for (var j = 0; j < this.outputSize; j = j + 1) {
+        sum = sum + outputDeltas.get(j) * this.weightsHiddenOutput.get(j).get(i);
+      }
+      hiddenDeltas.set(i, sum * this.activateDerivative(this.hiddenInputs.get(i)));
+    }
+
+    // Update weights and biases
+    for (var i = 0; i < this.outputSize; i = i + 1) {
+      for (var j = 0; j < this.hiddenSize; j = j + 1) {
+        var oldWeight = this.weightsHiddenOutput.get(i).get(j);
+        var adjustment = this.learningRate * outputDeltas.get(i) * this.hiddenOutputs.get(j);
+        this.weightsHiddenOutput.get(i).set(j, oldWeight + adjustment);
+      }
+      this.biasOutput.set(i, this.biasOutput.get(i) + this.learningRate * outputDeltas.get(i));
+    }
+
+    for (var i = 0; i < this.hiddenSize; i = i + 1) {
+      for (var j = 0; j < this.inputSize; j = j + 1) {
+        var oldWeight = this.weightsInputHidden.get(i).get(j);
+        var adjustment = this.learningRate * hiddenDeltas.get(i) * inputs.get(j);
+        this.weightsInputHidden.get(i).set(j, oldWeight + adjustment);
+      }
+      this.biasHidden.set(i, this.biasHidden.get(i) + this.learningRate * hiddenDeltas.get(i));
+    }
+
+    // Calculate error
+    var error = 0;
+    for (var i = 0; i < this.outputSize; i = i + 1) {
+      error = error + (targets.get(i) - predictions.get(i)) * (targets.get(i) - predictions.get(i));
+    }
+    return error * 0.5;
+  }
+
+  // Helper to print a 5x5 pattern
+  printPattern(pattern) {
+    for (var i = 0; i < 5; i = i + 1) {
+      var row = "";
+      for (var j = 0; j < 5; j = j + 1) {
+        if (pattern.get(i * 5 + j) == 1) {
+          row = row + "█ ";
+        } else {
+          row = row + "· ";
+        }
+      }
+      print row;
+    }
+    print "";
+  }
+}
+
+// Create training patterns
+var digitPatterns = Array(10);
+
+// Create pattern for digit 0
+var pattern0 = Array(25);
+for (var i = 0; i < 25; i = i + 1) {
+    pattern0.set(i, 0);
+}
+pattern0.set(1, 1); pattern0.set(2, 1); pattern0.set(3, 1);
+pattern0.set(5, 1); pattern0.set(9, 1);
+pattern0.set(10, 1); pattern0.set(14, 1);
+pattern0.set(15, 1); pattern0.set(19, 1);
+pattern0.set(21, 1); pattern0.set(22, 1); pattern0.set(23, 1);
+digitPatterns.set(0, pattern0);
+
+// Create pattern for digit 1
+var pattern1 = Array(25);
+for (var i = 0; i < 25; i = i + 1) {
+    pattern1.set(i, 0);
+}
+pattern1.set(2, 1);
+pattern1.set(7, 1);
+pattern1.set(12, 1);
+pattern1.set(17, 1);
+pattern1.set(22, 1);
+digitPatterns.set(1, pattern1);
+
+// Create pattern for digit 2
+var pattern2 = Array(25);
+for (var i = 0; i < 25; i = i + 1) {
+    pattern2.set(i, 0);
+}
+pattern2.set(1, 1); pattern2.set(2, 1); pattern2.set(3, 1);
+pattern2.set(9, 1);
+pattern2.set(11, 1); pattern2.set(12, 1); pattern2.set(13, 1);
+pattern2.set(15, 1);
+pattern2.set(21, 1); pattern2.set(22, 1); pattern2.set(23, 1);
+digitPatterns.set(2, pattern2);
+
+// Create and train network
+var nn = NeuralNetwork();
+
+// Training parameters
+var epoch = 0;
+var maxEpochs = 2000;
+var errorThreshold = 0.01;
+
+while (epoch < maxEpochs) {
+  var totalError = 0;
+  
+  // Train on each digit
+  for (var digit = 0; digit < 3; digit = digit + 1) {
+    totalError = totalError + nn.train(digitPatterns.get(digit), digit);
+  }
+  
+  if (epoch % 100 == 0) {
+    print "Epoch " + epoch + " Error: " + totalError;
+  }
+  
+  if (totalError < errorThreshold) {
+    print "Converged at epoch " + epoch + " with error " + totalError;
+    break;
+  }
+  
+  epoch = epoch + 1;
+}
+
+print "\nTesting recognition:";
+
+// Test each digit
+for (var digit = 0; digit < 3; digit = digit + 1) {
+  print "\nTesting digit " + digit + ":";
+  nn.printPattern(digitPatterns.get(digit));
+  var output = nn.forward(digitPatterns.get(digit));
+  
+  print "Predictions:";
+  for (var i = 0; i < 10; i = i + 1) {
+    print "Digit " + i + ": " + output.get(i);
+  }
+}
+
+// Test a noisy version of digit 1
+var noisy1 = Array(25);
+for (var i = 0; i < 25; i = i + 1) {
+    noisy1.set(i, pattern1.get(i));  // Copy pattern1
+}
+noisy1.set(6, 1);  // Add noise
+noisy1.set(8, 1);
+
+print "\nTesting noisy 1:";
+nn.printPattern(noisy1);
+var noisyOutput = nn.forward(noisy1);
+
+print "Predictions:";
+for (var i = 0; i < 10; i = i + 1) {
+  print "Digit " + i + ": " + noisyOutput.get(i);
+}
