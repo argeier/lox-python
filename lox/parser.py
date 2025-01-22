@@ -14,6 +14,7 @@ from .expr import (
     This,
     Unary,
     Variable,
+    Super,
 )
 from .stmt import (
     Block,
@@ -68,6 +69,11 @@ class Parser:
         methods: List[Function] = []
         class_methods: List[Function] = []
 
+        superclass: Variable | None = None
+        if self._match(TokenType.LESS):
+            self._consume(TokenType.IDENTIFIER, "Expect superclass name.")
+            superclass = Variable(self._previous())
+
         self._consume(TokenType.LEFT_BRACE, "Expect '{' before class body.")
 
         while not self._check(TokenType.RIGHT_BRACE) and not self._is_at_end():
@@ -78,7 +84,7 @@ class Parser:
 
         self._consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.")
 
-        return Class(name, methods, class_methods)
+        return Class(name, superclass, methods, class_methods)
 
     def _var_declaration(self) -> Var:
         name: Token = self._consume(TokenType.IDENTIFIER, "Expect variable name.")
@@ -365,6 +371,14 @@ class Parser:
 
         if self._match(TokenType.NUMBER, TokenType.STRING):
             return Literal(self._previous().literal)
+
+        if self._match(TokenType.SUPER):
+            keyword: Token = self._previous()
+            self._consume(TokenType.DOT, "Expect '.' after 'super'.")
+            method: Token = self._consume(
+                TokenType.IDENTIFIER, "Expect superclass method name."
+            )
+            return Super(keyword, method)
 
         if self._match(TokenType.THIS):
             return This(self._previous())

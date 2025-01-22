@@ -16,6 +16,7 @@ from .expr import (
     This,
     Unary,
     Variable,
+    Super,
 )
 from .lox_callable import ClockCallable, LoxCallable
 from .lox_class import LoxClass
@@ -216,16 +217,28 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
         return value
 
     @override
+    def visit_super_expr(self, expr: "Super") -> Any:
+        distance: int = self._locals[expr]
+        superclass: LoxClass = self._environment.get_at(distance, "super")
+        obj: LoxInstance = self._environment.get_at(distance - 1, "this")
+        method: LoxFunction = superclass.find_method(expr.method.lexeme)
+        if method is None:
+            raise RuntimeError(
+                expr.method, f"Undefined property '{expr.method.lexeme}.'"
+            )
+        return method.bind(obj)
+
+    @override
     def visit_this_expr(self, expr: "This") -> Any:
         return self._lookup_variable(expr.keyword, expr)
 
     @override
     def visit_call_expr(self, expr: "Call") -> Any:
         callee: Any = self._evaluate(expr.callee)
-        arguements: List[Any] = []
 
-        for argument in expr.arguments:
-            arguements.append(self._evaluate(argument))
+        arguements: List[Any] = [
+            self._evaluate(arguement) for arguement in expr.arguments
+        ]
 
         if not isinstance(callee, LoxCallable):
             raise LoxRuntimeError(expr.paren, "Can only call functions and classes.")
@@ -276,26 +289,39 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
 
     @override
     def visit_class_stmt(self, stmt: Class) -> None:
+        superclass: Any = None
+        if stmt.superclass:
+            superclass = self._evaluate(stmt.superclass)
+            if not isinstance(superclass, LoxClass):
+                raise RuntimeError(stmt.superclass.name, "Superclass must be a class.")
+
         self._environment.define(stmt.name.lexeme, None)
 
-        class_methods: Dict[str, LoxFunction] = {}
+        if stmt.superclass:
+            self._environment = Environment(self._environment)
+            self._environment.define("super", superclass)
 
-        for method in stmt.class_methods:
-            function: LoxFunction = LoxFunction(method, self._environment, False)
-            class_methods[method.name.lexeme] = function
+        class_methods: Dict[str, LoxFunction] = {
+            method.name.lexeme: LoxFunction(method, self._environment, False)
+            for method in stmt.class_methods
+        }
 
         metaclass: LoxClass = LoxClass(
-            None, stmt.name.lexeme + " metaclass", class_methods
+            None, stmt.name.lexeme + " metaclass", superclass, class_methods
         )
 
-        methods: Dict[str, LoxFunction] = {}
-        for method in stmt.methods:
-            function: LoxFunction = LoxFunction(
+        methods: Dict[str, LoxFunction] = {
+            method.name.lexeme: LoxFunction(
                 method, self._environment, method.name.lexeme == "init"
             )
-            methods[method.name.lexeme] = function
+            for method in stmt.methods
+        }
 
-        klass: LoxClass = LoxClass(metaclass, stmt.name.lexeme, methods)
+        klass: LoxClass = LoxClass(metaclass, stmt.name.lexeme, superclass, methods)
+
+        if superclass:
+            self._environment = self._environment.enclosing
+
         self._environment.assign(stmt.name, klass)
         return None
 

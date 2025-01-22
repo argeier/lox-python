@@ -17,6 +17,7 @@ from .expr import (
     This,
     Unary,
     Variable,
+    Super,
 )
 from .interpreter import Interpreter
 from .stmt import (
@@ -48,6 +49,7 @@ class FunctionType(Enum):
 class ClassType(Enum):
     NONE = "NONE"
     CLASS = "CLASS"
+    SUBCLASS = "SUBCLASS"
 
 
 class Stack(Generic[T]):  # should just use []
@@ -92,10 +94,23 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
     @override
     def visit_class_stmt(self, stmt: Class) -> None:
         enclosing_class: ClassType = self.current_class
-        self.current_class = ClassType
+        self.current_class = ClassType.CLASS
 
         self._declare(stmt.name)
         self._define(stmt.name)
+
+        if stmt.superclass and stmt.name.lexeme == stmt.superclass.name.lexeme:
+            self.error_handler(
+                stmt.superclass.name, "A class can't inherit from itself."
+            )
+
+        if stmt.superclass:
+            self.current_class = ClassType.SUBCLASS
+            self.resolve(stmt.superclass)
+
+        if stmt.superclass:
+            self._begin_scope()
+            self._scopes.peek()["super"] = True
 
         self._begin_scope()
         self._scopes.peek()["this"] = True
@@ -113,6 +128,10 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
             self._end_scope()
 
         self._end_scope()
+
+        if stmt.superclass:
+            self._end_scope()
+
         self.current_class = enclosing_class
         return None
 
@@ -241,6 +260,19 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
     @override
     def visit_unary_expr(self, expr: Unary) -> None:
         self.resolve(expr.right)
+        return None
+
+    @override
+    def visit_super_expr(self, expr: Super) -> None:
+        if self.current_class is ClassType.NONE:
+            self.error_handler.error(
+                expr.keyword, "Can't use 'super' outside of a class."
+            )
+        elif self.current_class is not ClassType.SUBCLASS:
+            self.error_handler.error(
+                expr.keyword, "Can't use 'super' in a class with no superclass."
+            )
+        self._resolve_local(expr, expr.keyword)
         return None
 
     @singledispatchmethod

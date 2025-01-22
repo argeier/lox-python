@@ -10,14 +10,23 @@ from .lox_instance import LoxInstance
 
 class LoxClass(LoxCallable, LoxInstance):
     def __init__(
-        self, metaclass: "LoxClass", name: str, methods: Dict[str, LoxFunction]
+        self,
+        metaclass: "LoxClass",
+        name: str,
+        superclass: "LoxClass",
+        methods: Dict[str, LoxFunction],
     ) -> None:
         super().__init__(metaclass)
         self.name = name
+        self.superclass = superclass
         self.methods = methods
 
-    def find_method(self, name: str) -> LoxCallable:
-        return self.methods.get(name)
+    def find_method(self, name: str) -> LoxCallable | None:
+        if name in self.methods:
+            return self.methods.get(name)
+        if self.superclass:
+            return self.superclass.find_method(name)
+        return None
 
     def __str__(self) -> str:
         return self.name

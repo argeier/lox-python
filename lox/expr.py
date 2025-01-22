@@ -52,6 +52,10 @@ class ExprVisitor(ABC, Generic[T]):
     def visit_this_expr(self, expr: "This") -> T:
         pass
 
+    @abstractmethod
+    def visit_super_expr(self, expr: "Super") -> T:
+        pass
+
 
 class Expr(ABC):
 
@@ -122,6 +126,16 @@ class Set(Expr):
     @override
     def accept(self, visitor: ExprVisitor[T]) -> T:
         return visitor.visit_set_expr(self)
+
+
+class Super(Expr):
+    def __init__(self, keyword: Token, method: Token) -> None:
+        self.keyword = keyword
+        self.method = method
+
+    @override
+    def accept(self, visitor: ExprVisitor[T]) -> T:
+        return visitor.visit_super_expr(self)
 
 
 class This(Expr):

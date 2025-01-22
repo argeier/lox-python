@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Generic, List, TypeVar, override
 
-from .expr import Expr
+from .expr import Expr, Variable
 from .tokens import Token
 
 T = TypeVar("T")
@@ -94,9 +94,14 @@ class Block(Stmt):
 
 class Class(Stmt):
     def __init__(
-        self, name: Token, methods: List["Function"], class_methods: List["Function"]
+        self,
+        name: Token,
+        superclass: Variable,
+        methods: List["Function"],
+        class_methods: List["Function"],
     ) -> None:
         self.name: Token = name
+        self.superclass: Variable = superclass
         self.methods: List["Function"] = methods
         self.class_methods: List["Function"] = class_methods
 
