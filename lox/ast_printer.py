@@ -13,13 +13,13 @@ from .expr import (
     Assign,
     Binary,
     Call,
+    Conditional,
     Expr,
     ExprVisitor,
     Get,
     Grouping,
     Literal,
     Logical,
-    Conditional,
 )
 from .expr import Set as ExprSet  # Renamed to avoid conflict with built-in set
 from .expr import Super, This, Unary, Variable
@@ -34,9 +34,9 @@ from .stmt import (
     Return,
     Stmt,
     StmtVisitor,
+    Trait,
     Var,
     While,
-    Trait,
 )
 from .tokens import Token
 
