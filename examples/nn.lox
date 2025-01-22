@@ -1,0 +1,117 @@
+class NeuralNetwork {
+  init() {
+    // Initialize weights with small distinct values to break symmetry
+    this.w1 = 0.05;
+    this.w2 = -0.05;
+    this.w3 = 0.07;
+    this.w4 = -0.07;
+    this.w5 = 0.09;
+    this.w6 = -0.09;
+    
+    this.b1 = 0.0;
+    this.b2 = 0.0;
+    this.b3 = 0.0;
+    
+    this.learningRate = 0.5;
+  }
+
+  // Non-linear activation function with wider derivative regions
+  sigmoid(x) {
+    if (x < -2) { return 0; }
+    if (x < 0) { return (x + 2) / 2; }  // Increases linearly from 0 to 1 as x goes from -2 to 0
+    if (x < 2) { return (2 - x) / 2; }  // Decreases linearly from 1 to 0 as x goes from 0 to 2
+    return 0;                             // Returns 0 for x >= 2
+  }
+
+  // Derivative of the non-linear activation function
+  sigmoidDerivative(x) {
+    if (x < -2 or x > 2) { return 0; }
+    if (x < 0) { return 0.5; }           // Derivative in the range -2 <= x < 0
+    if (x < 2) { return -0.5; }          // Derivative in the range 0 <= x < 2
+    return 0;
+  }
+
+  forward(x1, x2) {
+    this.h1in = this.w1 * x1 + this.w2 * x2 + this.b1;
+    this.h2in = this.w3 * x1 + this.w4 * x2 + this.b2;
+    
+    this.h1 = this.sigmoid(this.h1in);
+    this.h2 = this.sigmoid(this.h2in);
+    
+    this.outin = this.w5 * this.h1 + this.w6 * this.h2 + this.b3;
+    this.output = this.sigmoid(this.outin);
+    
+    return this.output;
+  }
+
+  train(x1, x2, target) {
+    var prediction = this.forward(x1, x2);
+    var error = target - prediction;
+    
+    var deltaOutput = error * this.sigmoidDerivative(this.outin);
+    var deltaH1 = deltaOutput * this.w5 * this.sigmoidDerivative(this.h1in);
+    var deltaH2 = deltaOutput * this.w6 * this.sigmoidDerivative(this.h2in);
+    
+    // Update weights and biases
+    this.w1 = this.w1 + this.learningRate * deltaH1 * x1;
+    this.w2 = this.w2 + this.learningRate * deltaH1 * x2;
+    this.w3 = this.w3 + this.learningRate * deltaH2 * x1;
+    this.w4 = this.w4 + this.learningRate * deltaH2 * x2;
+    this.w5 = this.w5 + this.learningRate * deltaOutput * this.h1;
+    this.w6 = this.w6 + this.learningRate * deltaOutput * this.h2;
+    
+    this.b1 = this.b1 + this.learningRate * deltaH1;
+    this.b2 = this.b2 + this.learningRate * deltaH2;
+    this.b3 = this.b3 + this.learningRate * deltaOutput;
+    
+    return error * error;
+  }
+
+  trainEpoch() {
+    var totalError = 0;
+    totalError = totalError + this.train(0, 0, 0);
+    totalError = totalError + this.train(0, 1, 1);
+    totalError = totalError + this.train(1, 0, 1);
+    totalError = totalError + this.train(1, 1, 0);
+    return totalError;
+  }
+}
+
+// Create network
+var nn = NeuralNetwork();
+
+// Train for more epochs but print less frequently
+var epoch = 0;
+var nextPrint = 0;
+var maxEpochs = 10000;
+var errorThreshold = 0.01;
+
+while (epoch < maxEpochs) {
+  var error = nn.trainEpoch();
+  
+  if (epoch == nextPrint) {
+    print "Epoch " + epoch + " Error: " + error;
+    print "Weights and Biases:";
+    print "w1: " + nn.w1 + ", w2: " + nn.w2;
+    print "w3: " + nn.w3 + ", w4: " + nn.w4;
+    print "w5: " + nn.w5 + ", w6: " + nn.w6;
+    print "b1: " + nn.b1 + ", b2: " + nn.b2 + ", b3: " + nn.b3;
+    nextPrint = nextPrint + 500;
+  }
+  
+  // Optional: Early stopping
+  /*
+  if (error < errorThreshold) {
+    print "Early stopping at epoch " + epoch + " with error: " + error;
+    break;
+  }
+  */
+  
+  epoch = epoch + 1;
+}
+
+print "Final results:";
+print "0 XOR 0 = " + nn.forward(0, 0);
+print "0 XOR 1 = " + nn.forward(0, 1);
+print "1 XOR 0 = " + nn.forward(1, 0);
+print "1 XOR 1 = " + nn.forward(1, 1);

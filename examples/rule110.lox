@@ -1,0 +1,97 @@
+class Rule110 {
+  init(size) {
+    this.size = size;
+    this.cells = CellList();
+    
+    // Initialize with a single 1 at the rightmost position
+    for (var i = 0; i < size - 1; i = i + 1) {
+      this.cells.append(0);
+    }
+    this.cells.append(1);
+  }
+
+  nextState(left, center, right) {
+    // Rule 110: 01101110 in binary
+    if (left == 1 and center == 1 and right == 1) return 0;  // 111 -> 0
+    if (left == 1 and center == 1 and right == 0) return 1;  // 110 -> 1
+    if (left == 1 and center == 0 and right == 1) return 1;  // 101 -> 1
+    if (left == 1 and center == 0 and right == 0) return 0;  // 100 -> 0
+    if (left == 0 and center == 1 and right == 1) return 1;  // 011 -> 1
+    if (left == 0 and center == 1 and right == 0) return 1;  // 010 -> 1
+    if (left == 0 and center == 0 and right == 1) return 1;  // 001 -> 1
+    if (left == 0 and center == 0 and right == 0) return 0;  // 000 -> 0
+    return 0;
+  }
+
+  step() {
+    var newCells = CellList();
+    
+    for (var i = 0; i < this.size; i = i + 1) {
+      var left = this.cells.get(i - 1);
+      var center = this.cells.get(i);
+      var right = this.cells.get(i + 1);
+      newCells.append(this.nextState(left, center, right));
+    }
+    
+    this.cells = newCells;
+  }
+
+  toString() {
+    var line = "";
+    for (var i = 0; i < this.size; i = i + 1) {
+      if (this.cells.get(i) == 1) {
+        line = line + "#";
+      } else {
+        line = line + " ";
+      }
+    }
+    print line;
+  }
+}
+
+// Rest of the code stays the same
+class Node {
+  init(value) {
+    this.value = value;
+    this.next = nil;
+  }
+}
+
+class CellList {
+  init() {
+    this.head = nil;
+    this.length = 0;
+  }
+
+  append(value) {
+    var node = Node(value);
+    if (this.head == nil) {
+      this.head = node;
+    } else {
+      var current = this.head;
+      while (current.next != nil) {
+        current = current.next;
+      }
+      current.next = node;
+    }
+    this.length = this.length + 1;
+  }
+
+  get(index) {
+    if (index < 0 or index >= this.length) return 0;
+    
+    var current = this.head;
+    for (var i = 0; i < index; i = i + 1) {
+      current = current.next;
+    }
+    return current.value;
+  }
+}
+
+// Run the simulation
+var steps = 50;
+var automaton = Rule110(steps);
+for (var i = 0; i < steps; i = i + 1) {
+  automaton.toString();
+  automaton.step();
+}

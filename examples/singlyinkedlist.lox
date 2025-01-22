@@ -1,0 +1,92 @@
+// Node class to represent each element in the list
+class Node {
+  init(value) {
+    this.value = value;
+    this.next = nil;
+  }
+}
+
+// LinkedList class with basic operations
+class LinkedList {
+  init() {
+    this.head = nil;
+    this.length = 0;
+  }
+
+  // Add element to the front of the list
+  prepend(value) {
+    var node = Node(value);
+    node.next = this.head;
+    this.head = node;
+    this.length = this.length + 1;
+  }
+
+  // Add element to the end of the list
+  append(value) {
+    var node = Node(value);
+    this.length = this.length + 1;
+    
+    if (this.head == nil) {
+      this.head = node;
+      return;
+    }
+
+    var current = this.head;
+    while (current.next != nil) {
+      current = current.next;
+    }
+    current.next = node;
+  }
+
+  // Print all elements in the list
+  toString() {
+    var current = this.head;
+    while (current != nil) {
+      print current.value;
+      current = current.next;
+    }
+  }
+
+  // Get value at specific index
+  get(index) {
+    if (index < 0 or index >= this.length) return nil;
+    
+    var current = this.head;
+    for (var i = 0; i < index; i = i + 1) {
+      current = current.next;
+    }
+    return current.value;
+  }
+
+  // Delete first occurrence of a value
+  delete(value) {
+    if (this.head == nil) return;
+
+    if (this.head.value == value) {
+      this.head = this.head.next;
+      this.length = this.length - 1;
+      return;
+    }
+
+    var current = this.head;
+    while (current.next != nil) {
+      if (current.next.value == value) {
+        current.next = current.next.next;
+        this.length = this.length - 1;
+        return;
+      }
+      current = current.next;
+    }
+  }
+}
+
+// Example usage:
+var list = LinkedList();
+list.append(1);
+list.append(2);
+list.prepend(0);
+list.tostring(); // Prints: 0, 1, 2
+print list.get(1); // Prints: 1
+list.delete(1);
+list.toString(); // Prints: 0, 2
+print list.length;

@@ -1,0 +1,167 @@
+class Node {
+  init(value) {
+    this.value = value;
+    this.next = nil;
+    this.prev = nil;
+  }
+}
+
+class DoublyLinkedList {
+  init() {
+    this.head = nil;
+    this.tail = nil;
+    this.length = 0;
+  }
+
+  prepend(value) {
+    var node = Node(value);
+    this.length = this.length + 1;
+
+    if (this.head == nil) {
+      this.head = node;
+      this.tail = node;
+      return;
+    }
+
+    node.next = this.head;
+    this.head.prev = node;
+    this.head = node;
+  }
+
+  append(value) {
+    var node = Node(value);
+    this.length = this.length + 1;
+
+    if (this.tail == nil) {
+      this.head = node;
+      this.tail = node;
+      return;
+    }
+
+    node.prev = this.tail;
+    this.tail.next = node;
+    this.tail = node;
+  }
+
+  // Print list from head to tail
+  printForward() {
+    var current = this.head;
+    while (current != nil) {
+      print current.value;
+      current = current.next;
+    }
+  }
+
+  // Print list from tail to head
+  printBackward() {
+    var current = this.tail;
+    while (current != nil) {
+      print current.value;
+      current = current.prev;
+    }
+  }
+
+  // Get value at index from start
+  get(index) {
+    if (index < 0 or index >= this.length) return nil;
+
+    // Optimize by choosing direction based on index
+    if (index <= this.length / 2) {
+      // Start from head
+      var current = this.head;
+      for (var i = 0; i < index; i = i + 1) {
+        current = current.next;
+      }
+      return current.value;
+    } else {
+      // Start from tail
+      var current = this.tail;
+      for (var i = this.length - 1; i > index; i = i - 1) {
+        current = current.prev;
+      }
+      return current.value;
+    }
+  }
+
+  delete(value) {
+    if (this.head == nil) return;
+
+    // Handle head
+    if (this.head.value == value) {
+      this.head = this.head.next;
+      if (this.head != nil) {
+        this.head.prev = nil;
+      } else {
+        this.tail = nil;
+      }
+      this.length = this.length - 1;
+      return;
+    }
+
+    // Handle middle nodes
+    var current = this.head;
+    while (current != nil) {
+      if (current.value == value) {
+        current.prev.next = current.next;
+        if (current.next != nil) {
+          current.next.prev = current.prev;
+        } else {
+          // Handle tail
+          this.tail = current.prev;
+        }
+        this.length = this.length - 1;
+        return;
+      }
+      current = current.next;
+    }
+  }
+
+  // Insert value at specific index
+  insertAt(index, value) {
+    if (index < 0 or index > this.length) return;
+    
+    if (index == 0) {
+      this.prepend(value);
+      return;
+    }
+    
+    if (index == this.length) {
+      this.append(value);
+      return;
+    }
+
+    var newNode = Node(value);
+    var current = this.head;
+    for (var i = 0; i < index; i = i + 1) {
+      current = current.next;
+    }
+
+    newNode.prev = current.prev;
+    newNode.next = current;
+    current.prev.next = newNode;
+    current.prev = newNode;
+    this.length = this.length + 1;
+  }
+
+  // Clear the list
+  clear() {
+    this.head = nil;
+    this.tail = nil;
+    this.length = 0;
+  }
+}
+
+var list = DoublyLinkedList();
+list.append(1);
+list.append(2);
+list.append(3);
+list.prepend(0);
+list.printForward();
+list.printBackward();
+print list.get(2);
+list.insertAt(2, 1.5);
+list.printForward();
+list.delete(1.5);
+list.printForward();
+list.clear();
+list.printForward();

@@ -146,9 +146,13 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
                 )
             case TokenType.PLUS:
                 if isinstance(left, float) and isinstance(right, float):
-                    return cast(float, left) + cast(float, right)
+                    return left + right
                 elif isinstance(left, str) and isinstance(right, str):
-                    return cast(str, left) + cast(str, right)
+                    return left + right
+                elif isinstance(left, str) and isinstance(right, float):
+                    return left + str(right)
+                elif isinstance(left, float) and isinstance(right, str):
+                    return str(left) + right
                 raise LoxRuntimeError(
                     expr.operator, "Operands must be two numbers or two strings."
                 )
