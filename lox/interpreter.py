@@ -16,6 +16,7 @@ from .expr import (
     Logical,
     Set,
     Super,
+    Conditional,
     This,
     Unary,
     Variable,
@@ -169,6 +170,11 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
                 raise LoxRuntimeError(
                     expr.operator, "Operands must be numbers or a string and a number."
                 )
+            case TokenType.MODULO:
+                self._check_number_operands(expr.operator, left, right)
+                if right == 0:
+                    raise LoxRuntimeError(expr.operator, "Division by zero.")
+                return left % right
             case TokenType.PLUS:
                 if isinstance(left, float) and isinstance(right, float):
                     return left + right
@@ -414,3 +420,10 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
 
         self._environment.assign(stmt.name, trait)
         return None
+
+    @override
+    def visit_conditional_expr(self, expr: Conditional) -> Any:
+        if self._is_truthy(self._evaluate(expr.condition)):
+            return self._evaluate(expr.then_branch)
+        else:
+            return self._evaluate(expr.else_branch)

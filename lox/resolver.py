@@ -15,6 +15,7 @@ from .expr import (
     Logical,
     Set,
     Super,
+    Conditional,
     This,
     Unary,
     Variable,
@@ -193,7 +194,7 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         return None
 
     @override
-    def visit_trait_stmt(self, stmt) -> None:
+    def visit_trait_stmt(self, stmt: Trait) -> None:
         self._declare(stmt.name)
         self._define(stmt.name)
         enclosing_class: ClassType = self.current_class
@@ -260,6 +261,13 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
     def visit_logical_expr(self, expr: Logical) -> None:
         self.resolve(expr.left)
         self.resolve(expr.right)
+        return None
+
+    @override
+    def visit_conditional_expr(self, expr: Conditional) -> None:
+        self.resolve(expr.condition)
+        self.resolve(expr.then_branch)
+        self.resolve(expr.else_branch)
         return None
 
     @override

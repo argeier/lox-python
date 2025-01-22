@@ -56,6 +56,10 @@ class ExprVisitor(ABC, Generic[T]):
     def visit_super_expr(self, expr: "Super") -> T:
         pass
 
+    @abstractmethod
+    def visit_conditional_expr(self, expr: "Conditional") -> T:
+        pass
+
 
 class Expr(ABC):
 
@@ -187,3 +191,14 @@ class Logical(Expr):
     @override
     def accept(self, visitor: ExprVisitor[T]) -> T:
         return visitor.visit_logical_expr(self)
+
+
+class Conditional(Expr):
+    def __init__(self, condition: Expr, then_branch: Expr, else_branch: Expr) -> None:
+        self.condition: Expr = condition
+        self.then_branch: Expr = then_branch
+        self.else_branch: Expr = else_branch
+
+    @override
+    def accept(self, visitor: ExprVisitor[T]) -> T:
+        return visitor.visit_conditional_expr(self)

@@ -12,6 +12,7 @@ from .expr import (
     Logical,
     Set,
     Super,
+    Conditional,
     This,
     Unary,
     Variable,
@@ -264,7 +265,21 @@ class Parser:
         return Function(name, parameters, body)
 
     def _expression(self) -> Expr:
-        return self._assignment()
+        return self._conditional()
+
+    def _conditional(self) -> Expr:
+        expr: Expr = self._assignment()
+
+        if self._match(TokenType.QUESTION):
+            then_branch: Expr = self._expression()
+            self._consume(
+                TokenType.COLON,
+                "Expect ':' after then branch of conditional expression.",
+            )
+            else_branch: Expr = self._conditional()
+            expr = Conditional(expr, then_branch, else_branch)
+
+        return expr
 
     def _assignment(self) -> Expr:
         expr: Expr = self._or()
@@ -342,7 +357,7 @@ class Parser:
     def _factor(self) -> Expr:
         expr: Expr = self._unary()
 
-        while self._match(TokenType.SLASH, TokenType.STAR):
+        while self._match(TokenType.SLASH, TokenType.STAR, TokenType.MODULO):
             operator: Token = self._previous()
             right: Expr = self._unary()
             expr = Binary(expr, operator, right)
