@@ -51,6 +51,8 @@ class TokenType(Enum):
     WHILE = "while"
     FUNCTION = "function"
     BREAK = "break"
+    TRAIT = "trait"
+    WITH = "with"
 
     # End of file
     EOF = "EOF"
@@ -87,6 +89,8 @@ KEYWORD_VALUES: Final[set[str]] = {
     "var",
     "while",
     "break",
+    "trait",
+    "with",
 }
 
 # Create a dictionary mapping keyword strings to their TokenType

@@ -1,4 +1,6 @@
-from typing import Any, Dict, Final, List, cast, override
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Dict, Final, List, cast, override
 
 from .environment import Environment
 from .error_handler import BreakException, LoxRuntimeError, ReturnException
@@ -18,10 +20,11 @@ from .expr import (
     Unary,
     Variable,
 )
-from .lox_callable import ClockCallable, LoxCallable
+from .lox_callable import ArrayCallable, ClockCallable, LoxCallable
 from .lox_class import LoxClass
 from .lox_function import LoxFunction
 from .lox_instance import LoxInstance
+from .lox_trait import LoxTrait
 from .stmt import (
     Block,
     Break,
@@ -33,10 +36,14 @@ from .stmt import (
     Return,
     Stmt,
     StmtVisitor,
+    Trait,
     Var,
     While,
 )
 from .tokens import Token, TokenType
+
+if TYPE_CHECKING:
+    from .lox_function import LoxFunction
 
 
 class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
@@ -47,6 +54,7 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
         self._locals: Dict[Expr, int] = {}
 
         self.globals.define("clock", ClockCallable())
+        self.globals.define("Array", ArrayCallable())
 
     def _evaluate(self, expr: Expr | None) -> Any:
         if expr is None:
@@ -81,6 +89,23 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
 
     def _execute(self, stmt: Stmt) -> None:
         stmt.accept(self)
+
+    def _apply_trait(self, traits: List[Expr]) -> Dict[str, LoxFunction]:
+        methods: Dict[str, LoxFunction] = {}
+        for trait_expr in traits:
+            trait_obj: object = self._evaluate(trait_expr)
+            if not isinstance(trait_obj, LoxTrait):
+                name: Token = trait_expr.name
+                raise RuntimeError(name, f"{name.lexeme} is not a trait.")
+            trait: LoxTrait = cast(LoxTrait, trait_obj)
+            for name in trait.methods:
+                if name in methods:
+                    raise RuntimeError(
+                        name,
+                        f"A previous trait declares a method named '{name}'.",
+                    )
+                methods[name] = trait.methods[name]
+        return methods
 
     def resolve(self, expr: Expr, depth: int) -> None:
         self._locals[expr] = depth
@@ -314,12 +339,16 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
             None, stmt.name.lexeme + " metaclass", superclass, class_methods
         )
 
-        methods: Dict[str, LoxFunction] = {
-            method.name.lexeme: LoxFunction(
-                method, self._environment, method.name.lexeme == "init"
-            )
-            for method in stmt.methods
-        }
+        methods: Dict[str, LoxFunction] = self._apply_trait(stmt.traits)
+
+        methods.update(
+            {
+                method.name.lexeme: LoxFunction(
+                    method, self._environment, method.name.lexeme == "init"
+                )
+                for method in stmt.methods
+            }
+        )
 
         klass: LoxClass = LoxClass(metaclass, stmt.name.lexeme, superclass, methods)
 
@@ -352,7 +381,7 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
 
     @override
     def visit_function_stmt(self, stmt: Function) -> None:
-        from .lox_function import LoxFunction  # to avoid circular import
+        # from .lox_function import LoxFunction  # to avoid circular import
 
         function: LoxFunction = LoxFunction(stmt, self._environment, False)
         self._environment.define(stmt.name.lexeme, function)
@@ -365,3 +394,23 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
             value = self._evaluate(stmt.value)
 
         raise ReturnException(value)
+
+    @override
+    def visit_trait_stmt(self, stmt: "Trait") -> None:
+        self._environment.define(stmt.name.lexeme, None)
+
+        methods: Dict[str, LoxFunction] = self._apply_trait(stmt.traits)
+
+        for method in stmt.methods:
+            if method.name.lexeme in methods:
+                raise RuntimeError(
+                    method.name,
+                    f"A previous trait declares a method named '{method.name.lexeme}'.",
+                )
+            function: LoxFunction = LoxFunction(method, self._environment, False)
+            methods[method.name.lexeme] = function
+
+        trait: LoxTrait = LoxTrait(stmt.name.lexeme, methods)
+
+        self._environment.assign(stmt.name, trait)
+        return None

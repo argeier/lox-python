@@ -31,6 +31,7 @@ from .stmt import (
     Return,
     Stmt,
     StmtVisitor,
+    Trait,
     Var,
     While,
 )
@@ -50,6 +51,7 @@ class ClassType(Enum):
     NONE = "NONE"
     CLASS = "CLASS"
     SUBCLASS = "SUBCLASS"
+    TRAIT = "TRAIT"
 
 
 class Stack(Generic[T]):  # should just use []
@@ -191,6 +193,25 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         return None
 
     @override
+    def visit_trait_stmt(self, stmt) -> None:
+        self._declare(stmt.name)
+        self._define(stmt.name)
+        enclosing_class: ClassType = self.current_class
+        self.current_class = ClassType.TRAIT
+
+        for trait in stmt.traits:
+            self.resolve(trait)
+
+        self._begin_scope()
+        self._scopes.peek()["this"] = True
+        for method in stmt.methods:
+            declaration: FunctionType = FunctionType.METHOD
+            self._resolve_function(method, declaration)
+        self._end_scope()
+        self.current_class = enclosing_class
+        return None
+
+    @override
     def visit_variable_expr(self, expr: Variable) -> None:
         if (
             not self._scopes.is_empty()
@@ -267,6 +288,11 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         if self.current_class is ClassType.NONE:
             self.error_handler.error(
                 expr.keyword, "Can't use 'super' outside of a class."
+            )
+
+        elif self.current_class is not ClassType.TRAIT:
+            self.error_handler.error(
+                expr.keyword, "Can't use 'super' in a class with no superclass."
             )
         elif self.current_class is not ClassType.SUBCLASS:
             self.error_handler.error(

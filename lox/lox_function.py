@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING, Any, List, override
 
+from .callable import LoxCallable
 from .environment import Environment
 from .error_handler import ReturnException
-from .lox_callable import LoxCallable
 from .stmt import Function
 
 if TYPE_CHECKING:

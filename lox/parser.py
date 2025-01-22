@@ -26,6 +26,7 @@ from .stmt import (
     Print,
     Return,
     Stmt,
+    Trait,
     Var,
     While,
 )
@@ -54,6 +55,8 @@ class Parser:
         try:
             if self._match(TokenType.CLASS):
                 return self._class_declaration()
+            if self._match(TokenType.TRAIT):
+                return self._trait_declaration()
             if self._match(TokenType.FUN):
                 return self._function("function")
             if self._match(TokenType.VAR):
@@ -74,6 +77,8 @@ class Parser:
             self._consume(TokenType.IDENTIFIER, "Expect superclass name.")
             superclass = Variable(self._previous())
 
+        traits: List[Expr] = self._with_clause()
+
         self._consume(TokenType.LEFT_BRACE, "Expect '{' before class body.")
 
         while not self._check(TokenType.RIGHT_BRACE) and not self._is_at_end():
@@ -84,7 +89,31 @@ class Parser:
 
         self._consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.")
 
-        return Class(name, superclass, methods, class_methods)
+        return Class(name, superclass, methods, class_methods, traits)
+
+    def _trait_declaration(self) -> Trait:
+        name: Token = self._consume(TokenType.IDENTIFIER, "Expect trait name.")
+        traits: List[Expr] = self._with_clause()
+
+        self._consume(TokenType.LEFT_BRACE, "Expect '{' before trait body.")
+
+        methods: List[Function] = []
+        while not self._check(TokenType.RIGHT_BRACE) and not self._is_at_end():
+            methods.append(self._function("method"))
+
+        self._consume(TokenType.RIGHT_BRACE, "Expect '}' after trait body.")
+
+        return Trait(name, traits, methods)
+
+    def _with_clause(self) -> List[Expr]:
+        traits: List[Expr] = []
+        if self._match(TokenType.WITH):
+            while True:
+                self._consume(TokenType.IDENTIFIER, "Expect trait name.")
+                traits.append(Variable(self._previous()))
+                if not self._match(TokenType.COMMA):
+                    break
+        return traits
 
     def _var_declaration(self) -> Var:
         name: Token = self._consume(TokenType.IDENTIFIER, "Expect variable name.")

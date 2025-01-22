@@ -48,6 +48,10 @@ class StmtVisitor(ABC, Generic[T]):
     def visit_class_stmt(self, stmt: "Class") -> T:
         pass
 
+    @abstractmethod
+    def visit_trait_stmt(self, stmt: "Trait") -> T:
+        pass
+
 
 class Stmt(ABC):
     @abstractmethod
@@ -99,11 +103,13 @@ class Class(Stmt):
         superclass: Variable,
         methods: List["Function"],
         class_methods: List["Function"],
+        traits: List[Expr],
     ) -> None:
         self.name: Token = name
         self.superclass: Variable = superclass
         self.methods: List["Function"] = methods
         self.class_methods: List["Function"] = class_methods
+        self.traits: List[Expr] = traits
 
     @override
     def accept(self, visitor: StmtVisitor[T]) -> T:
@@ -125,9 +131,9 @@ class If(Stmt):
     def __init__(
         self, condition: Expr, then_branch: Stmt, else_branch: Stmt | None
     ) -> None:
-        self.condition = condition
-        self.then_branch = then_branch
-        self.else_branch = else_branch
+        self.condition: Expr = condition
+        self.then_branch: Stmt = then_branch
+        self.else_branch: Stmt | None = else_branch
 
     @override
     def accept(self, visitor: StmtVisitor[T]) -> T:
@@ -161,3 +167,16 @@ class Return(Stmt):
     @override
     def accept(self, visitor: StmtVisitor[T]) -> T:
         return visitor.visit_return_stmt(self)
+
+
+class Trait(Stmt):
+    def __init__(
+        self, name: Token, traits: List[Expr], methods: List[Function]
+    ) -> None:
+        self.name: Token = name
+        self.traits: List[Expr] = traits
+        self.methods: List[Function] = methods
+
+    @override
+    def accept(self, visitor: StmtVisitor[T]) -> T:
+        return visitor.visit_trait_stmt(self)

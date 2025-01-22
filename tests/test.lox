@@ -138,3 +138,47 @@ class B < A {
 class C < B {}
 
 C().test();
+
+trait A {
+  a() {
+    print "a";
+  }
+}
+
+trait B1 {
+  b1() {
+    print "b1";
+  }
+}
+
+trait B2 {
+  b2() {
+    print "b2";
+  }
+}
+
+trait B with B1, B2 {
+  b() {
+    this.b1();
+    this.b2();
+  }
+}
+
+class C with A, B {}
+
+var c = C();
+c.a();
+c.b();
+
+
+var length = 20;
+var array = Array(length);
+
+// "length" returns the number of elements.
+print array.length; // "3".
+
+for (var i = 0; i < length; i = i + 1) {
+  array.set(i, i);
+}
+
+print array;
