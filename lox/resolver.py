@@ -14,10 +14,10 @@ from .expr import (
     Literal,
     Logical,
     Set,
+    Super,
     This,
     Unary,
     Variable,
-    Super,
 )
 from .interpreter import Interpreter
 from .stmt import (

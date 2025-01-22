@@ -13,10 +13,10 @@ from .expr import (
     Literal,
     Logical,
     Set,
+    Super,
     This,
     Unary,
     Variable,
-    Super,
 )
 from .lox_callable import ClockCallable, LoxCallable
 from .lox_class import LoxClass
