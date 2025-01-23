@@ -1,6 +1,6 @@
 # Python Lox Interpreter
 
-This is a Python implementation of the Lox programming language, based on Bob Nystrom's excellent book [Crafting Interpreters](https://craftinginterpreters.com/). The project serves as a learning exercise to understand interpreter design and implementation.
+This is a Python implementation of the Lox programming language, based on Bob Nystrom's book [Crafting Interpreters](https://craftinginterpreters.com/). The project serves as a learning exercise to understand interpreter design and implementation.
 
 ## About
 
