@@ -1,8 +1,20 @@
+from __future__ import annotations
+
 from enum import Enum
 from typing import Any, Dict, Final, Optional
 
 
 class TokenType(Enum):
+    """
+    Enumeration of all possible token types in the Lox language.
+
+    Categories:
+        Single-character tokens: Tokens that consist of a single character.
+        One or two character tokens: Tokens that may consist of one or two characters.
+        Literals: Tokens representing literals like identifiers, strings, and numbers.
+        Keywords: Reserved words in the Lox language.
+        EOF: Represents the end of the file/input.
+    """
 
     # Single-character tokens
     LEFT_PAREN = "("
@@ -62,8 +74,21 @@ class TokenType(Enum):
 
 
 class Token:
+    """
+    Represents a token produced by the scanner.
 
-    def __init__(self, type: TokenType, lexeme: str, literal: Optional[Any], line: int):
+    Attributes:
+        type (TokenType): The type of the token.
+        lexeme (str): The lexeme (actual text) of the token.
+        literal (Optional[Any]): The literal value of the token, if any.
+        line (int): The line number where the token appears.
+    """
+
+    __slots__ = ("type", "lexeme", "literal", "line")
+
+    def __init__(
+        self, type: TokenType, lexeme: str, literal: Optional[Any], line: int
+    ) -> None:
         self.type: TokenType = type
         self.lexeme: str = lexeme
         self.literal: Optional[Any] = literal

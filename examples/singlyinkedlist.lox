@@ -85,7 +85,7 @@ var list = LinkedList();
 list.append(1);
 list.append(2);
 list.prepend(0);
-list.tostring(); // Prints: 0, 1, 2
+list.toString(); // Prints: 0, 1, 2
 print list.get(1); // Prints: 1
 list.delete(1);
 list.toString(); // Prints: 0, 2
