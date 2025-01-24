@@ -1,8 +1,9 @@
 import unittest
 from unittest.mock import Mock
+
+from lox.lox_function import LoxFunction
 from lox.lox_trait import LoxTrait
 from lox.tokens import Token, TokenType
-from lox.lox_function import LoxFunction
 
 
 class TestLoxTrait(unittest.TestCase):

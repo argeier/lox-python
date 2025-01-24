@@ -1,8 +1,9 @@
 import unittest
 from unittest.mock import Mock, patch
-from lox.lox_function import LoxFunction
+
 from lox.environment import Environment
 from lox.error_handler import ReturnException
+from lox.lox_function import LoxFunction
 from lox.stmt import Function
 from lox.tokens import Token, TokenType
 

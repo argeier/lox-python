@@ -1,8 +1,9 @@
 import unittest
 from unittest.mock import Mock, patch
-from lox.lox_array import LoxArray, ArrayGetCallable, ArraySetCallable
-from lox.tokens import Token, TokenType
+
 from lox.error_handler import LoxRuntimeError
+from lox.lox_array import ArrayGetCallable, ArraySetCallable, LoxArray
+from lox.tokens import Token, TokenType
 
 
 class TestLoxArray(unittest.TestCase):

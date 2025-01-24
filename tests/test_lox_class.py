@@ -1,5 +1,6 @@
 import unittest
 from unittest.mock import Mock, patch
+
 from lox.lox_class import LoxClass
 from lox.lox_function import LoxFunction
 from lox.lox_instance import LoxInstance

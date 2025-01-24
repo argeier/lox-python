@@ -3,9 +3,9 @@ from typing import List
 from unittest.mock import Mock
 
 from lox.error_handler import ErrorHandler, ParseError
+from lox.expr import Binary, Grouping, Literal, Variable
 from lox.parser import Parser
 from lox.stmt import Block, Expression, Function, If, Print, Return, Var, While
-from lox.expr import Binary, Grouping, Literal, Variable
 from lox.tokens import Token, TokenType
 
 

@@ -1,27 +1,28 @@
 import unittest
-from unittest.mock import Mock, patch
 from math import cos, exp, log, sin, sqrt, tanh
 from time import time
+from unittest.mock import Mock, patch
+
+from lox.error_handler import LoxRuntimeError
 from lox.lox_callable import (
-    ClockCallable,
+    AbsCallable,
     ArrayCallable,
+    CeilCallable,
+    ClockCallable,
+    CosCallable,
+    ExpCallable,
+    FloorCallable,
+    LogCallable,
     MaxCallable,
     MinCallable,
-    SumCallable,
+    PowCallable,
     RandomCallable,
     RandomRangeCallable,
-    AbsCallable,
-    ExpCallable,
-    LogCallable,
-    SqrtCallable,
-    PowCallable,
-    FloorCallable,
-    CeilCallable,
-    TanhCallable,
     SinCallable,
-    CosCallable,
+    SqrtCallable,
+    SumCallable,
+    TanhCallable,
 )
-from lox.error_handler import LoxRuntimeError
 from lox.tokens import Token, TokenType
 
 

@@ -16,7 +16,7 @@ from lox.expr import (
     Variable,
 )
 from lox.interpreter import Interpreter
-from lox.resolver import FunctionType, ClassType, Resolver
+from lox.resolver import ClassType, FunctionType, Resolver
 from lox.stmt import (
     Block,
     Class,

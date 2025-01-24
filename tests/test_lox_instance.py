@@ -1,8 +1,9 @@
 import unittest
 from unittest.mock import Mock
-from lox.lox_instance import LoxInstance
-from lox.lox_function import LoxFunction
+
 from lox.error_handler import LoxRuntimeError
+from lox.lox_function import LoxFunction
+from lox.lox_instance import LoxInstance
 from lox.tokens import Token, TokenType
 
 

@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 from lox.environment import Environment
-from lox.error_handler import BreakException, ReturnException, LoxRuntimeError
+from lox.error_handler import BreakException, LoxRuntimeError, ReturnException
 from lox.expr import (
     Assign,
     Binary,
@@ -20,6 +20,8 @@ from lox.expr import (
 )
 from lox.interpreter import Interpreter
 from lox.lox_callable import LoxCallable
+from lox.lox_class import LoxClass
+from lox.lox_instance import LoxInstance
 from lox.stmt import (
     Block,
     Break,
@@ -34,8 +36,6 @@ from lox.stmt import (
     While,
 )
 from lox.tokens import Token, TokenType
-from lox.lox_class import LoxClass
-from lox.lox_instance import LoxInstance
 
 
 class TestInterpreter(unittest.TestCase):
