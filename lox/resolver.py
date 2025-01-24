@@ -103,7 +103,7 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         self._define(stmt.name)
 
         if stmt.superclass and stmt.name.lexeme == stmt.superclass.name.lexeme:
-            self.error_handler(
+            self.error_handler.error(
                 stmt.superclass.name, "A class can't inherit from itself."
             )
 

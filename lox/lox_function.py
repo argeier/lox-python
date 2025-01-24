@@ -20,7 +20,7 @@ class LoxFunction(LoxCallable):
         self.declaration: Function = declaration
         self.is_initializer: bool = is_initializer
 
-    def bind(self, instance: "LoxInstance") -> "LoxFunction":
+    def bind(self, instance: LoxInstance) -> LoxFunction:
         environment: Environment = Environment(self.closure)
         environment.define("this", instance)
         return LoxFunction(self.declaration, environment, self.is_initializer)
@@ -29,7 +29,7 @@ class LoxFunction(LoxCallable):
         return self.declaration.params is None
 
     @override
-    def call(self, interpreter: "Interpreter", arguments: List[Any]) -> Any:
+    def call(self, interpreter: Interpreter, arguments: List[Any]) -> Any:
         environment: Environment = Environment(self.closure)
         if self.declaration.params:
             for i in range(len(self.declaration.params)):
@@ -47,7 +47,7 @@ class LoxFunction(LoxCallable):
 
     @override
     def arity(self) -> int:
-        return len(self.declaration.params)
+        return len(self.declaration.params or [])
 
     @override
     def __str__(self) -> str:

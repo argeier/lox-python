@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import Generic, List, TypeVar, override
+from typing import Generic, List, Optional, TypeVar, override
 
 from .expr import Expr, Variable
 from .tokens import Token
@@ -100,15 +102,15 @@ class Class(Stmt):
     def __init__(
         self,
         name: Token,
-        superclass: Variable,
-        methods: List["Function"],
-        class_methods: List["Function"],
+        superclass: Optional[Variable],
+        methods: List[Function],
+        class_methods: List[Function],
         traits: List[Expr],
     ) -> None:
         self.name: Token = name
-        self.superclass: Variable = superclass
-        self.methods: List["Function"] = methods
-        self.class_methods: List["Function"] = class_methods
+        self.superclass: Optional[Variable] = superclass
+        self.methods: List[Function] = methods
+        self.class_methods: List[Function] = class_methods
         self.traits: List[Expr] = traits
 
     @override
@@ -117,9 +119,12 @@ class Class(Stmt):
 
 
 class Function(Stmt):
-    def __init__(self, name: Token, params: List[Token], body: List[Stmt]) -> None:
+
+    def __init__(
+        self, name: Token, params: Optional[List[Token]], body: List[Stmt]
+    ) -> None:
         self.name: Token = name
-        self.params: List[Token] = params
+        self.params: Optional[List[Token]] = params
         self.body: List[Stmt] = body
 
     @override

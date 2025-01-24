@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Any, List, override
 
 from .callable import LoxCallable
 from .error_handler import LoxRuntimeError
+from .lox_class import LoxClass
 from .lox_instance import LoxInstance
 from .tokens import Token
 
@@ -48,8 +49,9 @@ class ArraySetCallable(LoxCallable):
 
 
 class LoxArray(LoxInstance):
-    def __init__(self, size: int):
-        super().__init__(None)
+    def __init__(self, size: int) -> None:
+        array_class: LoxClass = LoxClass(None, "Array", None, {})
+        super().__init__(array_class)
         self.elements: List[Any] = [None] * size
 
     @override

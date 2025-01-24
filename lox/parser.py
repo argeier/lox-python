@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from .error_handler import ErrorHandler, ParseError
 from .expr import (
@@ -67,10 +67,10 @@ class Parser:
             self._synchronize()
             return None
 
-    def _class_declaration(self) -> Class:
+    def _class_declaration(self) -> Optional[Class]:
         name: Token = self._consume(TokenType.IDENTIFIER, "Expect class name.")
 
-        superclass: Variable | None = None
+        superclass: Optional[Variable] = None
         if self._match(TokenType.LESS):
             self._consume(TokenType.IDENTIFIER, "Expect superclass name.")
             superclass = Variable(self._previous())
@@ -239,7 +239,7 @@ class Parser:
     def _function(self, kind: str) -> Function:
         """Parse a function declaration and return a Function statement node."""
         name: Token = self._consume(TokenType.IDENTIFIER, f"Expect {kind} name.")
-        parameters: List[Token] | None = None
+        parameters: Optional[List[Token]] = None
 
         if kind != "method" or self._check(TokenType.LEFT_PAREN):
             self._consume(TokenType.LEFT_PAREN, f"Expect '(' after {kind} name.")
@@ -248,7 +248,9 @@ class Parser:
             if not self._check(TokenType.RIGHT_PAREN):
                 while True:
                     if len(parameters) >= 255:
-                        self.error(self._peek(), "Can't have more than 255 parameters.")
+                        self.error_handler.error(
+                            self._peek(), "Can't have more than 255 parameters."
+                        )
 
                     parameters.append(
                         self._consume(TokenType.IDENTIFIER, "Expect parameter name.")

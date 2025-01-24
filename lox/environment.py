@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Any, Dict, Optional
 
 from .error_handler import LoxRuntimeError
@@ -6,7 +8,7 @@ from .tokens import Token
 
 class Environment:
 
-    def __init__(self, enclosing: Optional["Environment"] = None) -> None:
+    def __init__(self, enclosing: Optional[Environment] = None) -> None:
         self.enclosing = enclosing
         self.values: Dict[str, Any] = {}
 
@@ -22,7 +24,7 @@ class Environment:
     def define(self, name: str, value: Any) -> None:
         self.values[name] = value
 
-    def _ancestor(self, distance: int) -> "Environment":
+    def _ancestor(self, distance: int) -> Environment:
         environment: "Environment" = self
         for _ in range(distance):
             assert environment.enclosing is not None, "Enclosing environment is None."

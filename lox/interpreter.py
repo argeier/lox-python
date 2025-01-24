@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, Final, List, cast, override
+from typing import TYPE_CHECKING, Any, Dict, Final, List, Optional, cast, override
 
 from .environment import Environment
 from .error_handler import BreakException, LoxRuntimeError, ReturnException
@@ -89,7 +89,7 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
         self.globals.define("cos", CosCallable())
         self.globals.define("tanh", TanhCallable())
 
-    def _evaluate(self, expr: Expr | None) -> Any:
+    def _evaluate(self, expr: Optional[Expr]) -> Any:
         if expr is None:
             return None
 
@@ -128,14 +128,14 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
         for trait_expr in traits:
             trait_obj: object = self._evaluate(trait_expr)
             if not isinstance(trait_obj, LoxTrait):
-                name: Token = trait_expr.name
-                raise RuntimeError(name, f"{name.lexeme} is not a trait.")
+                no_trait: Token = cast(Variable, trait_expr).name
+                raise RuntimeError(no_trait, f"{no_trait.lexeme} is not a trait.")
             trait: LoxTrait = cast(LoxTrait, trait_obj)
             for name in trait.methods:
                 if name in methods:
                     raise RuntimeError(
-                        name,
-                        f"A previous trait declares a method named '{name}'.",
+                        Token(TokenType.IDENTIFIER, name, None, 0),
+                        f"{name} is not a trait.",
                     )
                 methods[name] = trait.methods[name]
         return methods
@@ -240,7 +240,7 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
     def visit_variable_expr(self, expr: "Variable") -> Any:
         return self._lookup_variable(expr.name, expr)
 
-    def _lookup_variable(self, name: Token, expr: Variable) -> Any:
+    def _lookup_variable(self, name: Token, expr: Expr) -> Any:
         distance: int = self._locals.get(expr, -1)
         if distance != -1:
             return self._environment.get_at(distance, name.lexeme)
@@ -288,7 +288,7 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
         distance: int = self._locals[expr]
         superclass: LoxClass = self._environment.get_at(distance, "super")
         obj: LoxInstance = self._environment.get_at(distance - 1, "this")
-        method: LoxFunction = superclass.find_method(expr.method.lexeme)
+        method: Optional[LoxFunction] = superclass.find_method(expr.method.lexeme)
         if method is None:
             raise RuntimeError(
                 expr.method, f"Undefined property '{expr.method.lexeme}.'"
@@ -391,6 +391,7 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
         klass: LoxClass = LoxClass(metaclass, stmt.name.lexeme, superclass, methods)
 
         if superclass:
+            assert self._environment.enclosing is not None
             self._environment = self._environment.enclosing
 
         self._environment.assign(stmt.name, klass)
@@ -448,7 +449,7 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
             function: LoxFunction = LoxFunction(method, self._environment, False)
             methods[method.name.lexeme] = function
 
-        trait: LoxTrait = LoxTrait(stmt.name.lexeme, methods)
+        trait: LoxTrait = LoxTrait(stmt.name, methods)
 
         self._environment.assign(stmt.name, trait)
         return None
