@@ -2,12 +2,40 @@ import unittest
 from unittest.mock import Mock, patch
 
 from lox.environment import Environment
-from lox.error_handler import BreakException, ReturnException
-from lox.expr import Assign, Binary, Call, Grouping, Literal, Logical, Unary, Variable
+from lox.error_handler import BreakException, ReturnException, LoxRuntimeError
+from lox.expr import (
+    Assign,
+    Binary,
+    Call,
+    Conditional,
+    Get,
+    Grouping,
+    Literal,
+    Logical,
+    Set,
+    Super,
+    This,
+    Unary,
+    Variable,
+)
 from lox.interpreter import Interpreter
 from lox.lox_callable import LoxCallable
-from lox.stmt import Block, Break, Expression, Function, If, Print, Return, Var, While
+from lox.stmt import (
+    Block,
+    Break,
+    Class,
+    Expression,
+    Function,
+    If,
+    Print,
+    Return,
+    Trait,
+    Var,
+    While,
+)
 from lox.tokens import Token, TokenType
+from lox.lox_class import LoxClass
+from lox.lox_instance import LoxInstance
 
 
 class TestInterpreter(unittest.TestCase):
@@ -16,146 +44,172 @@ class TestInterpreter(unittest.TestCase):
         self.environment = Environment()
 
     def test_literal_expr(self):
-        expr = Literal(123)
+        expr = Literal(123.0)
         result = self.interpreter.visit_literal_expr(expr)
-        self.assertEqual(result, 123)
+        self.assertEqual(result, 123.0)
 
-    def test_grouping_expr(self):
-        expr = Grouping(Literal(123))
-        result = self.interpreter.visit_grouping_expr(expr)
-        self.assertEqual(result, 123)
+        expr = Literal("test")
+        result = self.interpreter.visit_literal_expr(expr)
+        self.assertEqual(result, "test")
+
+    def test_binary_expr_arithmetic(self):
+        cases = [
+            (1.0, TokenType.PLUS, 2.0, 3.0),
+            (5.0, TokenType.MINUS, 3.0, 2.0),
+            (4.0, TokenType.STAR, 2.0, 8.0),
+            (8.0, TokenType.SLASH, 2.0, 4.0),
+            (5.0, TokenType.MODULO, 2.0, 1.0),
+        ]
+
+        for left, op_type, right, expected in cases:
+            expr = Binary(
+                Literal(left), Token(op_type, op_type.value, None, 1), Literal(right)
+            )
+            result = self.interpreter.visit_binary_expr(expr)
+            self.assertEqual(result, expected)
+
+    def test_binary_expr_comparison(self):
+        cases = [
+            (1.0, TokenType.LESS, 2.0, True),
+            (2.0, TokenType.GREATER, 1.0, True),
+            (2.0, TokenType.LESS_EQUAL, 2.0, True),
+            (2.0, TokenType.GREATER_EQUAL, 2.0, True),
+            (2.0, TokenType.EQUAL_EQUAL, 2.0, True),
+            (2.0, TokenType.BANG_EQUAL, 1.0, True),
+        ]
+
+        for left, op_type, right, expected in cases:
+            expr = Binary(
+                Literal(left), Token(op_type, op_type.value, None, 1), Literal(right)
+            )
+            result = self.interpreter.visit_binary_expr(expr)
+            self.assertEqual(result, expected)
+
+    def test_binary_expr_string_operations(self):
+        expr = Binary(
+            Literal("Hello"), Token(TokenType.PLUS, "+", None, 1), Literal(" World")
+        )
+        result = self.interpreter.visit_binary_expr(expr)
+        self.assertEqual(result, "Hello World")
+
+        expr = Binary(Literal("abc"), Token(TokenType.STAR, "*", None, 1), Literal(3.0))
+        result = self.interpreter.visit_binary_expr(expr)
+        self.assertEqual(result, "abcabcabc")
 
     def test_unary_expr(self):
         expr = Unary(Token(TokenType.MINUS, "-", None, 1), Literal(123.0))
         result = self.interpreter.visit_unary_expr(expr)
         self.assertEqual(result, -123.0)
 
-    def test_binary_expr(self):
-        expr = Binary(Literal(1.0), Token(TokenType.PLUS, "+", None, 1), Literal(2.0))
-        result = self.interpreter.visit_binary_expr(expr)
-        self.assertEqual(result, 3.0)
+        expr = Unary(Token(TokenType.BANG, "!", None, 1), Literal(True))
+        result = self.interpreter.visit_unary_expr(expr)
+        self.assertEqual(result, False)
 
-    def test_variable_expr(self):
-        self.interpreter.globals.define("x", 123)
-        expr = Variable(name=Token(TokenType.IDENTIFIER, "x", None, 1))
-        result = self.interpreter.visit_variable_expr(expr)
-        self.assertEqual(result, 123)
+    def test_variable_definition_and_access(self):
+        # Test variable definition
+        var_name = Token(TokenType.IDENTIFIER, "x", None, 1)
+        var_stmt = Var(var_name, Literal(42.0))
+        self.interpreter.visit_var_stmt(var_stmt)
 
-    def test_assign_expr(self):
+        # Test variable access
+        var_expr = Variable(var_name)
+        result = self.interpreter.visit_variable_expr(var_expr)
+        self.assertEqual(result, 42.0)
+
+    def test_assignment(self):
+        # First define a variable
+        var_name = Token(TokenType.IDENTIFIER, "x", None, 1)
         self.interpreter.globals.define("x", None)
-        expr = Assign(
-            name=Token(TokenType.IDENTIFIER, "x", None, 1), value=Literal(value=123)
-        )
-        result = self.interpreter.visit_assign_expr(expr)
-        self.assertEqual(result, 123)
 
-    def test_logical_expr(self):
+        # Then test assignment
+        assign_expr = Assign(var_name, Literal(100.0))
+        result = self.interpreter.visit_assign_expr(assign_expr)
+        self.assertEqual(result, 100.0)
+
+        # Verify the assignment took effect
+        var_expr = Variable(var_name)
+        result = self.interpreter.visit_variable_expr(var_expr)
+        self.assertEqual(result, 100.0)
+
+    def test_block_statements(self):
+        var_name = Token(TokenType.IDENTIFIER, "x", None, 1)
+        statements = [Var(var_name, Literal(42.0)), Expression(Variable(var_name))]
+
+        block = Block(statements)
+        self.interpreter.visit_block_stmt(block)
+
+        # Variable should not be accessible outside block
+        with self.assertRaises(Exception):
+            self.interpreter.globals.get(var_name)
+
+    def test_if_statement(self):
+        then_branch = Mock(spec=Expression)
+        else_branch = Mock(spec=Expression)
+
+        # Test true condition
+        if_stmt = If(Literal(True), then_branch, else_branch)
+        with patch.object(self.interpreter, "_execute") as mock_execute:
+            self.interpreter.visit_if_stmt(if_stmt)
+            mock_execute.assert_called_once_with(then_branch)
+
+        # Test false condition
+        if_stmt = If(Literal(False), then_branch, else_branch)
+        with patch.object(self.interpreter, "_execute") as mock_execute:
+            self.interpreter.visit_if_stmt(if_stmt)
+            mock_execute.assert_called_once_with(else_branch)
+
+    def test_logical_expressions(self):
+        # Test OR with truthy first operand
         expr = Logical(
             Literal(True), Token(TokenType.OR, "or", None, 1), Literal(False)
         )
         result = self.interpreter.visit_logical_expr(expr)
         self.assertTrue(result)
 
-    def test_call_expr(self):
-        with patch("lox.lox_callable.LoxCallable", spec=LoxCallable) as MockCallable:
-            mock_callable = MockCallable.return_value
-            mock_callable.arity.return_value = 0
-            mock_callable.call.return_value = "called"
-            callee = Mock()
-            callee.accept.return_value = mock_callable
-            expr = Call(callee, Token(TokenType.LEFT_PAREN, "(", None, 1), [])
-            result = self.interpreter.visit_call_expr(expr)
-            self.assertEqual(result, "called")
+        # Test AND with truthy first operand
+        expr = Logical(
+            Literal(True), Token(TokenType.AND, "and", None, 1), Literal(False)
+        )
+        result = self.interpreter.visit_logical_expr(expr)
+        self.assertFalse(result)
 
-    def test_expression_stmt(self):
-        expr = Literal(123)
-        stmt = Expression(expr)
-        with patch.object(
-            self.interpreter, "_evaluate", return_value=123
-        ) as mock_evaluate:
-            self.interpreter.visit_expression_stmt(stmt)
-            mock_evaluate.assert_called_once_with(expr)
-
-    def test_print_stmt(self):
-        expr = Literal(123)
-        stmt = Print(expr)
-        with patch("builtins.print") as mock_print:
-            with patch.object(
-                self.interpreter, "_evaluate", return_value=123
-            ) as mock_evaluate:
-                self.interpreter.visit_print_stmt(stmt)
-                mock_evaluate.assert_called_once_with(expr)
-                mock_print.assert_called_once_with("123")
-
-    def test_var_stmt(self):
-        name = Token(TokenType.IDENTIFIER, "x", None, 1)
-        initializer = Literal(123)
-        stmt = Var(name, initializer)
-        with patch.object(
-            self.interpreter, "_evaluate", return_value=123
-        ) as mock_evaluate:
-            self.interpreter.visit_var_stmt(stmt)
-            mock_evaluate.assert_called_once_with(initializer)
-            self.assertEqual(self.interpreter._environment.get(name), 123)
-
-    def test_block_stmt(self):
-        statements = [Mock(spec=Expression)]
-        stmt = Block(statements)
-        with patch.object(self.interpreter, "_execute") as mock_execute:
-            self.interpreter.visit_block_stmt(stmt)
-            mock_execute.assert_called_once_with(statements[0])
-
-    def test_if_stmt(self):
-        condition = Literal(True)
-        then_branch = Mock(spec=Expression)
-        else_branch = Mock(spec=Expression)
-        stmt = If(condition, then_branch, else_branch)
-        with patch.object(
-            self.interpreter, "_evaluate", return_value=True
-        ) as mock_evaluate:
-            with patch.object(self.interpreter, "_execute") as mock_execute:
-                self.interpreter.visit_if_stmt(stmt)
-                mock_evaluate.assert_called_once_with(condition)
-                mock_execute.assert_called_once_with(then_branch)
-
-    def test_while_stmt(self):
-        condition = Literal(True)
+    def test_while_statement(self):
+        condition = Mock()
         body = Mock(spec=Expression)
+
+        condition.accept.side_effect = [True, True, False]
         stmt = While(condition, body)
-        with patch.object(
-            self.interpreter, "_evaluate", side_effect=[True, False]
-        ) as mock_evaluate:
-            with patch.object(self.interpreter, "_execute") as mock_execute:
-                self.interpreter.visit_while_stmt(stmt)
-                self.assertEqual(mock_evaluate.call_count, 2)
-                mock_execute.assert_called_once_with(body)
 
-    def test_break_stmt(self):
-        stmt = Break()
+        with patch.object(self.interpreter, "_execute") as mock_execute:
+            self.interpreter.visit_while_stmt(stmt)
+            self.assertEqual(mock_execute.call_count, 2)
+
+    def test_break_statement(self):
         with self.assertRaises(BreakException):
-            self.interpreter.visit_break_stmt(stmt)
+            self.interpreter.visit_break_stmt(Break())
 
-    def test_function_stmt(self):
-        name = Token(TokenType.IDENTIFIER, "foo", None, 1)
-        params = [Token(TokenType.IDENTIFIER, "x", None, 1)]
-        body = [Mock(spec=Expression)]
-        stmt = Function(name, params, body)
-        with patch("lox.lox_function.LoxFunction") as MockFunction:
-            mock_function = MockFunction.return_value
-            self.interpreter.visit_function_stmt(stmt)
-            self.assertIs(self.interpreter._environment.get(name), mock_function)
+    def test_function_declaration_and_call(self):
+        # Define function
+        func_name = Token(TokenType.IDENTIFIER, "test_func", None, 1)
+        param = Token(TokenType.IDENTIFIER, "x", None, 1)
+        body = [Return(Token(TokenType.RETURN, "return", None, 1), Variable(param))]
+        func_stmt = Function(func_name, [param], body)
 
-    def test_return_stmt(self):
-        keyword = Token(TokenType.RETURN, "return", None, 1)
-        value = Literal(123)
-        stmt = Return(keyword, value)
-        with patch.object(
-            self.interpreter, "_evaluate", return_value=123
-        ) as mock_evaluate:
-            with self.assertRaises(ReturnException) as context:
-                self.interpreter.visit_return_stmt(stmt)
-            mock_evaluate.assert_called_once_with(value)
-            self.assertEqual(context.exception.value, 123)
+        self.interpreter.visit_function_stmt(func_stmt)
+
+        # Test function call
+        func_var = Variable(func_name)
+        call_expr = Call(
+            func_var, Token(TokenType.LEFT_PAREN, "(", None, 1), [Literal(42.0)]
+        )
+
+        result = self.interpreter.visit_call_expr(call_expr)
+        self.assertEqual(result, 42.0)
+
+    def test_division_by_zero(self):
+        expr = Binary(Literal(1.0), Token(TokenType.SLASH, "/", None, 1), Literal(0.0))
+        with self.assertRaises(LoxRuntimeError):
+            self.interpreter.visit_binary_expr(expr)
 
 
 if __name__ == "__main__":

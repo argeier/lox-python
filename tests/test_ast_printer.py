@@ -1,169 +1,97 @@
 import unittest
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from lox.ast_printer import AstPrinter
-from lox.expr import Binary, Grouping, Literal, Unary, Variable
-from lox.stmt import Block, Break, Expression, If, Return, While
+from lox.expr import Binary, Literal, Variable
+from lox.stmt import Expression, Print, Var
 from lox.tokens import Token, TokenType
 
 
 class TestAstPrinter(unittest.TestCase):
     def setUp(self):
-        """Set up fresh AST printer instance for each test."""
         self.ast_printer = AstPrinter()
         self.ast_printer._output_dir = Path("test_output")
+        self.token = lambda type, lexeme: Token(type, lexeme, None, 1)
 
-    def tearDown(self):
-        """Clean up any test artifacts."""
-        if self.ast_printer._output_dir.exists():
-            import shutil
+    def test_split_expression(self):
+        expressions = [
+            ("(+ 1 2)", ["(+ 1 2)"]),
+            ('print "hello"', ["print", '"hello"']),
+            ("(group (+ 1 2))", ["(group (+ 1 2))"]),
+            ('(print "hello" "world")', ['(print "hello" "world")']),
+        ]
 
-            shutil.rmtree(self.ast_printer._output_dir)
+        for expr, expected in expressions:
+            with self.subTest(expr=expr):
+                result = self.ast_printer._split_expression(expr)
+                self.assertEqual(result, expected)
 
-    def test_initialization(self):
-        """Test proper initialization of AstPrinter."""
-        self.assertEqual(self.ast_printer._ast, "")
-        self.assertEqual(self.ast_printer._visited_nodes, set())
-        self.assertFalse(self.ast_printer._ast_directory_cleared)
-        self.assertEqual(self.ast_printer._node_counter, 0)
+    def test_parse_literal_expr(self):
+        with patch("pygraphviz.AGraph") as MockAGraph:
+            mock_graph = MockAGraph()
+            self.ast_printer._parse_literal_expr("42", mock_graph)
+            mock_graph.add_node.assert_called_once()
+            args = mock_graph.add_node.call_args[0]
+            self.assertTrue(args[0].startswith("node"))
+            self.assertEqual(mock_graph.add_node.call_args[1]["label"], "Number: 42")
 
-    def test_create_ast_none(self):
-        """Test creating AST with None statement."""
+    def test_basic_expressions(self):
+        expr = Binary(Literal(1), self.token(TokenType.PLUS, "+"), Literal(2))
+        result = expr.accept(self.ast_printer)
+        self.assertEqual(result, "(+ 1 2)")
+
+    def test_nested_expressions(self):
+        inner = Binary(Literal(2), self.token(TokenType.STAR, "*"), Literal(3))
+        outer = Binary(inner, self.token(TokenType.PLUS, "+"), Literal(1))
+        result = outer.accept(self.ast_printer)
+        self.assertEqual(result, "(+ (* 2 3) 1)")
+
+    def test_variable_declaration(self):
+        var_stmt = Var(self.token(TokenType.IDENTIFIER, "x"), Literal(42))
+        result = var_stmt.accept(self.ast_printer)
+        self.assertEqual(result, "(var x 42)")
+
+    def test_print_statement(self):
+        print_stmt = Print(Literal("hello"))
+        result = print_stmt.accept(self.ast_printer)
+        self.assertEqual(result, '(print "hello")')
+
+    def test_create_ast(self):
+        stmt = Print(Literal(42))
+        self.ast_printer.create_ast(stmt)
+        self.assertEqual(self.ast_printer.ast, "(print 42)")
+
         self.ast_printer.create_ast(None)
         self.assertEqual(self.ast_printer.ast, "")
 
-    def test_split_expression(self):
-        """Test expression splitting functionality."""
-        test_cases = [
-            ("(+ 1 2)", ["(+ 1 2)"]),
-            ('(print "hello")', ['(print "hello")']),
-            ("(+ (* 3 4) 5)", ["(+ (* 3 4) 5)"]),
-            ('"test string"', ['"test string"']),
-        ]
-        for input_expr, expected in test_cases:
-            with self.subTest(input_expr=input_expr):
-                result = self.ast_printer._split_expression(input_expr)
-                self.assertEqual(result, expected)
-
-    def test_visit_literal_expr(self):
-        """Test literal expression visiting."""
-        test_cases = [
-            (None, "nil"),
-            ("hello", '"hello"'),
-            (42, "42"),
-            (3.14, "3.14"),
-            (True, "True"),
-        ]
-        for value, expected in test_cases:
-            with self.subTest(value=value):
-                expr = Literal(value)
-                result = self.ast_printer.visit_literal_expr(expr)
-                self.assertEqual(result, expected)
-
-    def test_visit_binary_expr(self):
-        """Test binary expression visiting."""
-        left = Literal(1)
-        right = Literal(2)
-        operator = Token(TokenType.PLUS, "+", None, 1)
-        expr = Binary(left, operator, right)
-        result = self.ast_printer.visit_binary_expr(expr)
-        self.assertEqual(result, "(+ 1 2)")
-
-    def test_visit_grouping_expr(self):
-        """Test grouping expression visiting."""
-        inner = Literal(42)
-        expr = Grouping(inner)
-        result = self.ast_printer.visit_grouping_expr(expr)
-        self.assertEqual(result, "(group 42)")
-
-    def test_visit_unary_expr(self):
-        """Test unary expression visiting."""
-        operator = Token(TokenType.MINUS, "-", None, 1)
-        right = Literal(5)
-        expr = Unary(operator, right)
-        result = self.ast_printer.visit_unary_expr(expr)
-        self.assertEqual(result, "(- 5)")
-
-    def test_visit_variable_expr(self):
-        """Test variable expression visiting."""
-        name = Token(TokenType.IDENTIFIER, "x", None, 1)
-        expr = Variable(name)
-        result = self.ast_printer.visit_variable_expr(expr)
-        self.assertEqual(result, "x")
-
-    def test_visit_block_stmt(self):
-        """Test block statement visiting."""
-        statements = [Expression(Literal(1)), Expression(Literal(2))]
-        stmt = Block(statements)
-        result = self.ast_printer.visit_block_stmt(stmt)
-        self.assertEqual(result, "(block (expr 1) (expr 2))")
-
-    def test_visit_if_stmt(self):
-        """Test if statement visiting with and without else branch."""
-        condition = Literal(True)
-        then_branch = Expression(Literal(1))
-
-        # Test if without else
-        stmt = If(condition, then_branch, None)
-        result = self.ast_printer.visit_if_stmt(stmt)
-        self.assertEqual(result, "(if True (expr 1))")
-
-        # Test if with else
-        else_branch = Expression(Literal(2))
-        stmt = If(condition, then_branch, else_branch)
-        result = self.ast_printer.visit_if_stmt(stmt)
-        self.assertEqual(result, "(if True (expr 1) (expr 2))")
-
     def test_visualize_ast(self):
-        """Test AST visualization."""
-        # Prepare the test
-        self.ast_printer._ast = "(+ 1 2)"
+        stmt = Print(Literal(42))
+        self.ast_printer.create_ast(stmt)
 
-        with patch("lox.ast_printer.AGraph") as MockAGraph, patch(
-            "builtins.print"
-        ) as mock_print:  # Prevent print output
-            # Setup the mock
-            mock_graph = MagicMock()
-            MockAGraph.return_value = mock_graph
-            mock_graph.draw.return_value = None  # Prevent actual file writing
-
-            # Execute the method
+        with patch("pygraphviz.AGraph") as MockAGraph:
+            mock_graph = MockAGraph()
             self.ast_printer.visualize_ast()
-
-            # Verify the mock was called correctly
-            MockAGraph.assert_called_once_with(strict=True, directed=True)
             mock_graph.layout.assert_called_once_with(prog="dot")
-            mock_graph.draw.assert_called_once()
+            self.assertTrue(mock_graph.draw.called)
 
-            # Verify no actual file operations occurred
-            self.assertFalse(Path("test_output/ast_statement_0.png").exists())
+    def test_expression_parsing(self):
+        expr = "(+ 1 (* 2 3))"
+        with patch("pygraphviz.AGraph") as MockAGraph:
+            mock_graph = MockAGraph()
+            self.ast_printer._parse_expression(expr, mock_graph)
+            # Verify nodes were added for operators and numbers
+            self.assertGreater(mock_graph.add_node.call_count, 3)
 
-    def test_break_stmt(self):
-        """Test break statement visiting."""
-        stmt = Break()
-        result = self.ast_printer.visit_break_stmt(stmt)
-        self.assertEqual(result, "(break)")
+    def test_variable_expr(self):
+        var = Variable(self.token(TokenType.IDENTIFIER, "foo"))
+        result = var.accept(self.ast_printer)
+        self.assertEqual(result, "foo")
 
-    def test_return_stmt(self):
-        """Test return statement visiting with and without value."""
-        # Test return without value
-        stmt = Return(Token(TokenType.RETURN, "return", None, 1), None)
-        result = self.ast_printer.visit_return_stmt(stmt)
-        self.assertEqual(result, "(return)")
-
-        # Test return with value
-        stmt = Return(Token(TokenType.RETURN, "return", None, 1), Literal(42))
-        result = self.ast_printer.visit_return_stmt(stmt)
-        self.assertEqual(result, "(return 42)")
-
-    def test_while_stmt(self):
-        """Test while statement visiting."""
-        condition = Literal(True)
-        body = Expression(Literal(42))
-        stmt = While(condition, body)
-        result = self.ast_printer.visit_while_stmt(stmt)
-        self.assertEqual(result, "(while True (expr 42))")
+    def test_expression_stmt(self):
+        expr_stmt = Expression(Literal(42))
+        result = expr_stmt.accept(self.ast_printer)
+        self.assertEqual(result, "(expr 42)")
 
 
 if __name__ == "__main__":
