@@ -48,11 +48,13 @@ class TestErrorHandler(unittest.TestCase):
         self.assertEqual(len(self.handler.errors), 0)
 
     def test_print_exception(self):
+        exception = Exception("Test exception")
         with patch("builtins.print") as mock_print:
-            with patch("traceback.print_exc") as mock_traceback:
-                ErrorHandler.print_exception(Exception("Test"))
-                mock_print.assert_called_with("Error: Test")
-                mock_traceback.assert_called_once()
+            with patch("traceback.print_exc") as mock_print_exc:
+                ErrorHandler.print_exception(exception)
+                mock_print.assert_any_call("Detailed traceback:")
+                mock_print.assert_any_call("Error: Test exception")
+                mock_print_exc.assert_called_once()
 
 
 class TestExceptions(unittest.TestCase):

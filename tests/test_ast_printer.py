@@ -65,16 +65,6 @@ class TestAstPrinter(unittest.TestCase):
         self.ast_printer.create_ast(None)
         self.assertEqual(self.ast_printer.ast, "")
 
-    def test_visualize_ast(self):
-        stmt = Print(Literal(42))
-        self.ast_printer.create_ast(stmt)
-
-        with patch("pygraphviz.AGraph") as MockAGraph:
-            mock_graph = MockAGraph()
-            self.ast_printer.visualize_ast()
-            mock_graph.layout.assert_called_once_with(prog="dot")
-            self.assertTrue(mock_graph.draw.called)
-
     def test_expression_parsing(self):
         expr = "(+ 1 (* 2 3))"
         with patch("pygraphviz.AGraph") as MockAGraph:

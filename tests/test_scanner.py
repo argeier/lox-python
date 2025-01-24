@@ -105,7 +105,7 @@ class TestScanner(unittest.TestCase):
         tokens = scanner.scan_tokens()
 
         self.error_handler.error.assert_called_once_with(
-            line=1, message="Unterminated string."
+            line_or_token=1, message="Unterminated string."
         )
 
     def test_unterminated_block_comment(self):
@@ -114,7 +114,7 @@ class TestScanner(unittest.TestCase):
         tokens = scanner.scan_tokens()
 
         self.error_handler.error.assert_called_once_with(
-            line=1, message="Unterminated block comment."
+            line_or_token=1, message="Unterminated block comment."
         )
 
 
